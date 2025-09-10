@@ -27,11 +27,11 @@ jobs:
           path: env
       - uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          #creds: ${{ secrets.AZURE_CREDENTIALS }}
           #auth-type: SERVICE_PRINCIPAL
-          #client-id: 8c198c22-9a34-4857-8e78-b78fbe6fbbec
-          #tenant-id: 4983917f-34f2-4ad8-90a2-d8dad7c99f18
-          #subscription-id: f3d1de09-72d9-4869-90b2-3daf03eecda2
+          client-id: 8c198c22-9a34-4857-8e78-b78fbe6fbbec
+          tenant-id: 4983917f-34f2-4ad8-90a2-d8dad7c99f18
+          subscription-id: f3d1de09-72d9-4869-90b2-3daf03eecda2
       - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
