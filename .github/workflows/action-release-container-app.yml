@@ -38,7 +38,7 @@ jobs:
       - run: |
           cd ${{ inputs.working_dir }}
           make docker-buildx IMAGE_TAG=${{ inputs.tag_version }}
-      - uses: azure/container-apps-deploy@v1
+      - uses: azure/container-apps-deploy-action@v1
         with:
           resourceGroup: ${{ env.RELEASE_RESOURCE_GROUP }}
           containerAppName: ${{ env.RELEASE_CONTAINER_APP_NAME }}
