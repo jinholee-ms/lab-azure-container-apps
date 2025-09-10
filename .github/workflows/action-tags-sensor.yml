@@ -25,8 +25,8 @@ jobs:
     needs: detect-tags
     uses: ./.github/workflows/action-release-container-app.yml
     with:
-      working_dir: ${{ needs.detect-tags.outputs.working_dir }}
-      tag_version: ${{ needs.detect-tags.outputs.tag_version }}
+      working_dir: containers/property-stats-mcp
+      tag_version: test
     permissions:
       id-token: write
       contents: read #This is required for actions/checkout
