@@ -25,7 +25,7 @@ jobs:
       - uses: docker/setup-buildx-action@v3
       - uses: falti/dotenv-action@v1.0.4
         with:
-          path: .env
+          path: env
       - uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
