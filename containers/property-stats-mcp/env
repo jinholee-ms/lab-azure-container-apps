@@ -1,4 +1,4 @@
 RELEASE_RESOURCE_GROUP="rg-client-container-apps-community-001"
-RELEASE_CONTAINER_APP_NAME="property-stats-mcp"
+RELEASE_CONTAINER_APP_NAME="ca-property-stats-mcp"
 RELEASE_CONTAINER_APP_IMAGE="jinholeems/property-stats-mcp"
 RELEASE_CONTAINER_APP_PORT=8000

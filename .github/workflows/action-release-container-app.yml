@@ -49,5 +49,4 @@ jobs:
             az containerapp update \
               --resource-group "$RELEASE_RESOURCE_GROUP" \
               --name "$RELEASE_CONTAINER_APP_NAME" \
-              --image "$RELEASE_CONTAINER_APP_IMAGE:${{ inputs.tag_version }}" \
-              --target-port "$RELEASE_CONTAINER_APP_PORT"
+              --image "$RELEASE_CONTAINER_APP_IMAGE:${{ inputs.tag_version }}"
