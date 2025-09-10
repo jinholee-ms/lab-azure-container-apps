@@ -1,0 +1,46 @@
+name: Release container app to Docker Hub
+
+on:
+  workflow_call:
+    inputs:
+      working_dir:
+        required: true
+        type: string
+      tag_version:
+        required: true
+        type: string
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read #This is required for actions/checkout
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: falti/dotenv-action@v1.0.4
+        with:
+          path: .env
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - run: |
+          cd ${{ inputs.working_dir }}
+          make docker-buildx IMAGE_TAG=${{ inputs.tag_version }}
+      - uses: azure/container-apps-deploy@v1
+        with:
+          resourceGroup: ${{ env.RELEASE_RESOURCE_GROUP }}
+          containerAppName: ${{ env.RELEASE_CONTAINER_APP_NAME }}
+          imageToDeploy: ${{ env.RELEASE_CONTAINER_APP_IMAGE }}:${{ inputs.tag_version }}
+          targetPort: ${{ env.RELEASE_CONTAINER_APP_PORT }}

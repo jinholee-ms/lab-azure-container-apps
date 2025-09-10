@@ -1,0 +1,32 @@
+name: Tags sensor in working directories
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '**/v*'
+      
+jobs:
+  detect-tags:
+    runs-on: ubuntu-latest
+    outputs:
+      working_dir: ${{ steps.extract-working-dir.outputs.working_dir }}
+      tag_version: ${{ steps.extract-working-dir.outputs.tag_version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: extract-working-dir
+        run: |
+          TAG_REF="${GITHUB_REF#refs/tags/}"
+          echo "working_dir=containers/$(dirname "$TAG_REF")" >> $GITHUB_OUTPUT
+          echo "tag_version=$(basename "$TAG_REF")" >> $GITHUB_OUTPUT
+
+  call-release-container-app:
+    needs: detect-tags
+    uses: ./.github/workflows/action-release-container-app.yml
+    with:
+      working_dir: ${{ needs.detect-tags.outputs.working_dir }}
+      tag_version: ${{ needs.detect-tags.outputs.tag_version }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
