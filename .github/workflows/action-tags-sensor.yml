@@ -28,7 +28,7 @@ jobs:
       working_dir: containers/property-stats-mcp
       tag_version: test
     permissions:
-      id-token: write
+      #id-token: write
       contents: read #This is required for actions/checkout
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
