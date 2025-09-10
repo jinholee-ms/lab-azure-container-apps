@@ -19,7 +19,6 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read #This is required for actions/checkout
     steps:
       - uses: actions/checkout@v4
