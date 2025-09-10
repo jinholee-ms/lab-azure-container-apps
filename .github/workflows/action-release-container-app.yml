@@ -43,9 +43,11 @@ jobs:
       - run: |
           cd ${{ inputs.working_dir }}
           make docker-buildx IMAGE_TAG=${{ inputs.tag_version }}
-      - uses: azure/container-apps-deploy-action@v1
+      - uses: azure/cli@v2
         with:
-          resourceGroup: ${{ env.RELEASE_RESOURCE_GROUP }}
-          containerAppName: ${{ env.RELEASE_CONTAINER_APP_NAME }}
-          imageToDeploy: ${{ env.RELEASE_CONTAINER_APP_IMAGE }}:${{ inputs.tag_version }}
-          targetPort: ${{ env.RELEASE_CONTAINER_APP_PORT }}
+          inlineScript: |
+            az containerapp update \
+              --resource-group "$RELEASE_RESOURCE_GROUP" \
+              --name "$RELEASE_CONTAINER_APP_NAME" \
+              --image "$RELEASE_CONTAINER_APP_IMAGE:${{ inputs.tag_version }}" \
+              --target-port "$RELEASE_CONTAINER_APP_PORT"
