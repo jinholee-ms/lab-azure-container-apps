@@ -37,15 +37,16 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - uses: falti/dotenv-action@v1.0.4
-        with:
-          path: ${{ inputs.working_dir }}/env
       - run: |
           cd ${{ inputs.working_dir }}
           make docker-buildx IMAGE_TAG=${{ inputs.tag_version }}
       - uses: azure/cli@v2
         with:
           inlineScript: |
+            set -a
+            . "${{ inputs.working_dir }}/env"
+            set +a
+            
             az containerapp update \
               --resource-group "$RELEASE_RESOURCE_GROUP" \
               --name "$RELEASE_CONTAINER_APP_NAME" \

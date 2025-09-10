@@ -2,11 +2,9 @@ name: Tags sensor in working directories
 
 on:
   push:
-    branches:
-      - main
     tags:
       - '**/v*'
-      
+
 jobs:
   detect-tags:
     runs-on: ubuntu-latest
