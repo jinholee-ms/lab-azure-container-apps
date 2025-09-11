@@ -11,6 +11,7 @@ docker-build:
 
 docker-buildx:
 	docker buildx build \
+	--platform linux/amd64 \
 	--no-cache \
 	--push \
 	-t ${RELEASE_CONTAINER_APP_IMAGE}:${IMAGE_TAG} .
