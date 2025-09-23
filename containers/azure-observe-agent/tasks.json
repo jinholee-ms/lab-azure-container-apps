@@ -1,0 +1,85 @@
+[
+  {
+    "id": "T-001",
+    "title": "Define scope & OKRs",
+    "status": "Planned",
+    "start_date": "2025-09-19",
+    "due_date": "2025-09-19",
+    "assignee": "PM",
+    "priority": "High",
+    "progress": 40,
+    "tags": [
+      "planning",
+      "OKR"
+    ],
+    "description": "Kickoff & OKRs",
+    "depends_on": []
+  },
+  {
+    "id": "T-002",
+    "title": "Design system sketch",
+    "status": "In Progress",
+    "start_date": "2025-09-19",
+    "due_date": "2025-09-26",
+    "assignee": "Alice",
+    "priority": "High",
+    "progress": 60,
+    "tags": [
+      "design"
+    ],
+    "description": "UI/UX exploration",
+    "depends_on": [
+      "T-001"
+    ]
+  },
+  {
+    "id": "T-003",
+    "title": "API spec v1",
+    "status": "Backlog",
+    "start_date": "2025-09-19",
+    "due_date": "2025-09-19",
+    "assignee": "Bob",
+    "priority": "Medium",
+    "progress": 0,
+    "tags": [
+      "backend",
+      "spec"
+    ],
+    "description": "",
+    "depends_on": []
+  },
+  {
+    "id": "T-004",
+    "title": "PoC pipeline",
+    "status": "Blocked",
+    "start_date": "2025-09-19",
+    "due_date": "2025-09-19",
+    "assignee": "Data",
+    "priority": "Critical",
+    "progress": 10,
+    "tags": [
+      "data",
+      "ml"
+    ],
+    "description": "Waiting for creds",
+    "depends_on": [
+      "T-001",
+      "T-003"
+    ]
+  },
+  {
+    "id": "T-005",
+    "title": "Release 0.1",
+    "status": "Done",
+    "start_date": "2025-09-19",
+    "due_date": "2025-09-19",
+    "assignee": "DevOps",
+    "priority": "Medium",
+    "progress": 100,
+    "tags": [
+      "release"
+    ],
+    "description": "",
+    "depends_on": []
+  }
+]
