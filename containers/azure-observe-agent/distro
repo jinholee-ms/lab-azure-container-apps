@@ -1,4 +1,0 @@
-RELEASE_RESOURCE_GROUP=rg-client-container-apps-community-001
-RELEASE_CONTAINER_APP_NAME=ca-azure-observe-agent
-RELEASE_CONTAINER_APP_IMAGE=jinholeems/azure-observe-agent
-RELEASE_CONTAINER_APP_PORT=8000
