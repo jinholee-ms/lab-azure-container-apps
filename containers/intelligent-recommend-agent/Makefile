@@ -20,7 +20,7 @@ docker-push:
 	docker push ${RELEASE_CONTAINER_APP_IMAGE}:${IMAGE_TAG}
 
 fmt:
-	black .
+	uv run black .
 
 lint:
-	flake8 .
+	uv run flake8 .

@@ -100,7 +100,10 @@ jobs:
             az containerapp create \
               --resource-group "$RELEASE_RESOURCE_GROUP" \
               --name "$RELEASE_CONTAINER_APP_NAME" \
+              --registry-server docker.io \
               --image "$RELEASE_CONTAINER_APP_IMAGE:${{ inputs.tag_version }}" \
+              --username ${{ secrets.DOCKERHUB_USERNAME }} \
+              --password ${{ secrets.DOCKERHUB_TOKEN }} \
               --ingress external \
               --environment "$RELEASE_CONTAINER_APP_ENVIRONMENT" \
               --target-port "$RELEASE_CONTAINER_APP_TARGET_PORT"
