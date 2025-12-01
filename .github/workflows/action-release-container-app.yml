@@ -78,7 +78,7 @@ jobs:
             az containerapp env create \
               --resource-group "$RELEASE_RESOURCE_GROUP" \
               --name "$RELEASE_CONTAINER_APP_ENVIRONMENT" \
-              --location korea-central
+              --location koreacentral
       - uses: azure/cli@v2
         name: check existing container app
         with:
