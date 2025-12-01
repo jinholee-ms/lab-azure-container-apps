@@ -12,25 +12,59 @@ class Settings(BaseSettings):
         case_sensitive=True,
     )
 
-    AZURE_AI_FOUNDRY_PROJECT_ENDPOINT: str = Field(..., validation_alias=AliasChoices("AZURE_AI_FOUNDRY_PROJECT_ENDPOINT"))
-    AZURE_OPENAI_ENDPOINT: str = Field(..., validation_alias=AliasChoices("AZURE_OPENAI_ENDPOINT"))
-    AZURE_OPENAI_API_KEY: str = Field(..., validation_alias=AliasChoices("AZURE_OPENAI_API_KEY"))
-    AZURE_OPENAI_CHAT_DEPLOYMENT: str = Field(..., validation_alias=AliasChoices("AZURE_OPENAI_CHAT_DEPLOYMENT"))
-    AZURE_OPENAI_EMBEDDING_DEPLOYMENT: str = Field(..., validation_alias=AliasChoices("AZURE_OPENAI_EMBEDDING_DEPLOYMENT"))
-    AZURE_OPENAI_API_VERSION: str = Field(..., validation_alias=AliasChoices("AZURE_OPENAI_API_VERSION"))
-    AZURE_DOCUMENTINTELLIGENCE_ENDPOINT: str = Field(..., validation_alias=AliasChoices("AZURE_DOCUMENTINTELLIGENCE_ENDPOINT"))
-    AZURE_DOCUMENTINTELLIGENCE_API_KEY: str = Field(..., validation_alias=AliasChoices("AZURE_DOCUMENTINTELLIGENCE_API_KEY"))
-    AZURE_OPENAI_MULTIMEDIA_ENDPOINT: str = Field(..., validation_alias=AliasChoices("AZURE_OPENAI_MULTIMEDIA_ENDPOINT"))
-    AZURE_OPENAI_MULTIMEDIA_API_KEY: str = Field(..., validation_alias=AliasChoices("AZURE_OPENAI_MULTIMEDIA_API_KEY"))
-    AZURE_AI_SEARCH_ENDPOINT: str = Field(..., validation_alias=AliasChoices("AZURE_AI_SEARCH_ENDPOINT"))
-    AZURE_AI_SEARCH_ADMIN_KEY: str = Field(..., validation_alias=AliasChoices("AZURE_AI_SEARCH_ADMIN_KEY"))
-    NAVER_DEV_CLIENT_ID: str = Field(..., validation_alias=AliasChoices("NAVER_DEV_CLIENT_ID"))
-    NAVER_DEV_CLIENT_SECRET: str = Field(..., validation_alias=AliasChoices("NAVER_DEV_CLIENT_SECRET"))
+    AZURE_AI_FOUNDRY_PROJECT_ENDPOINT: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_AI_FOUNDRY_PROJECT_ENDPOINT")
+    )
+    AZURE_OPENAI_ENDPOINT: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_OPENAI_ENDPOINT")
+    )
+    AZURE_OPENAI_API_KEY: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_OPENAI_API_KEY")
+    )
+    AZURE_OPENAI_CHAT_DEPLOYMENT: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_OPENAI_CHAT_DEPLOYMENT")
+    )
+    AZURE_OPENAI_EMBEDDING_DEPLOYMENT: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
+    )
+    AZURE_OPENAI_API_VERSION: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_OPENAI_API_VERSION")
+    )
+    AZURE_DOCUMENTINTELLIGENCE_ENDPOINT: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_DOCUMENTINTELLIGENCE_ENDPOINT")
+    )
+    AZURE_DOCUMENTINTELLIGENCE_API_KEY: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_DOCUMENTINTELLIGENCE_API_KEY")
+    )
+    AZURE_OPENAI_MULTIMEDIA_ENDPOINT: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_OPENAI_MULTIMEDIA_ENDPOINT")
+    )
+    AZURE_OPENAI_MULTIMEDIA_API_KEY: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_OPENAI_MULTIMEDIA_API_KEY")
+    )
+    AZURE_AI_SEARCH_ENDPOINT: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_AI_SEARCH_ENDPOINT")
+    )
+    AZURE_AI_SEARCH_ADMIN_KEY: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_AI_SEARCH_ADMIN_KEY")
+    )
+    NAVER_DEV_CLIENT_ID: str = Field(
+        ..., validation_alias=AliasChoices("NAVER_DEV_CLIENT_ID")
+    )
+    NAVER_DEV_CLIENT_SECRET: str = Field(
+        ..., validation_alias=AliasChoices("NAVER_DEV_CLIENT_SECRET")
+    )
     NOTION_TOKEN: str = Field(..., validation_alias=AliasChoices("NOTION_TOKEN"))
-    GOOGLE_MAP_MCP_PORT: int = Field(..., validation_alias=AliasChoices("GOOGLE_MAP_MCP_PORT"))
-    GOOGLE_MAP_MCP_API_KEY: str = Field(..., validation_alias=AliasChoices("GOOGLE_MAP_MCP_API_KEY"))
-    OPENWEATHER_API_KEY: str = Field(..., validation_alias=AliasChoices("OPENWEATHER_API_KEY"))
-    
+    GOOGLE_MAP_MCP_PORT: int = Field(
+        ..., validation_alias=AliasChoices("GOOGLE_MAP_MCP_PORT")
+    )
+    GOOGLE_MAP_MCP_API_KEY: str = Field(
+        ..., validation_alias=AliasChoices("GOOGLE_MAP_MCP_API_KEY")
+    )
+    OPENWEATHER_API_KEY: str = Field(
+        ..., validation_alias=AliasChoices("OPENWEATHER_API_KEY")
+    )
+
     def show(self):
         console.print(self)
 
@@ -60,6 +94,7 @@ async def init_ms_foundry_monitoring_module():
     configure_azure_monitor(connection_string=project_client.telemetry.get_application_insights_connection_string())
     """
     ...
+
 
 settings = get_settings()
 console = Console()

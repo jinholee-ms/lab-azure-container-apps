@@ -9,13 +9,18 @@ from capabilities.mcp import get_mcp_client
 
 
 class WebSearchOperator(TaskOperator):
-    async def exec(self, state: AgentGraphState, task: Task = None, previous_tasks: list[Task] = None) -> None:
+    async def exec(
+        self,
+        state: AgentGraphState,
+        task: Task = None,
+        previous_tasks: list[Task] = None,
+    ) -> None:
         response = await self.agent.run_langchain_agent(
             self.agent.generate_system_prompt(),
             self.agent.generate_user_prompt(question=task.question),
             session_id=state.session_id,
         )
-        
+
         task.answer = self.agent.extract_langchain_agent_answer(response)
 
 
@@ -31,12 +36,12 @@ class WebSearchAgent(AgentBase):
             Path(__file__).parent / "prompts" / "web_search_system_prompt.jinja",
             template_format="jinja2",
         ).format(**kwargs)
-        
+
     def generate_user_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
             Path(__file__).parent / "prompts" / "web_search_human_prompt.jinja",
             template_format="jinja2",
         ).format(**kwargs)
-    
+
     async def get_tools(self) -> list[callable]:
         return await get_mcp_client().get_tools(server_name="naver-web")

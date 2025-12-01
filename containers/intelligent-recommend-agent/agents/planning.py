@@ -12,8 +12,9 @@ from common import console
 
 
 @tool(
-	"plan",
-	description=dedent("""
+    "plan",
+    description=dedent(
+        """
         Returns a structured execution plan based on the user's request.
 
         Each step should have:
@@ -21,7 +22,8 @@ from common import console
         - description: what to do in this step
         - agent: which agent or tool to call
         - question: question or input for this step
-	"""),
+	"""
+    ),
     args_schema=PlanningStepsArgument,
 )
 async def plan(steps: list) -> PlanningStepsArgument:
@@ -30,8 +32,13 @@ async def plan(steps: list) -> PlanningStepsArgument:
 
 
 class PlanningOperator(TaskOperator):
-    async def exec(self, state: AgentGraphState, task: Task = None, previous_tasks: list[Task] = None) -> None:
-        #model = (await self.agent.get_model(include_tools=False)).with_structured_output(PlanningStepsArgument)
+    async def exec(
+        self,
+        state: AgentGraphState,
+        task: Task = None,
+        previous_tasks: list[Task] = None,
+    ) -> None:
+        # model = (await self.agent.get_model(include_tools=False)).with_structured_output(PlanningStepsArgument)
         response = await self.agent.run_langchain_agent(
             self.agent.generate_system_prompt(agents=state.input.agents),
             self.agent.generate_user_prompt(question=state.input.question),
@@ -42,34 +49,42 @@ class PlanningOperator(TaskOperator):
         answer = self.agent.extract_langchain_agent_answer(response)
         if steps := json.loads(answer).get("steps"):
             state.workflow = Workflow(tasks=[Task(**step) for step in steps])
-            
-            table = Table(title="📝 [PlanningAgent] Generated workflow.", show_lines=False)
+
+            table = Table(
+                title="📝 [PlanningAgent] Generated workflow.", show_lines=False
+            )
             table.add_column("#", style="cyan", justify="right")
             table.add_column("Agent", style="magenta")
             table.add_column("Question", style="green")
             table.add_column("ReferTo", style="cyan")
             for idx, task in enumerate(state.workflow.tasks):
-                table.add_row(str(idx), task.agent, task.question, "".join([str(i) for i in task.use_answers_from]))
+                table.add_row(
+                    str(idx),
+                    task.agent,
+                    task.question,
+                    "".join([str(i) for i in task.use_answers_from]),
+                )
             console.print(table)
         else:
             console.log(f"⚠️ [PlanningAgent] No steps found in the generated plan.")
             return
-        
 
 
 class PlanningAgent(AgentBase):
     name: str = "PlanningAgent"
-    description: str = "사용자의 요청을 여러 개의 단계(step)로 분해하여, 정의된 에이전트들이 실행할 수 있는 Plan을 만드는 에이전트"
+    description: str = (
+        "사용자의 요청을 여러 개의 단계(step)로 분해하여, 정의된 에이전트들이 실행할 수 있는 Plan을 만드는 에이전트"
+    )
     activated: bool = True
     locked: bool = True
     task_operator = PlanningOperator
-    
+
     def generate_system_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
             Path(__file__).parent / "prompts" / "planning_system_prompt.jinja",
             template_format="jinja2",
         ).format(**kwargs)
-        
+
     def generate_user_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
             Path(__file__).parent / "prompts" / "planning_human_prompt.jinja",

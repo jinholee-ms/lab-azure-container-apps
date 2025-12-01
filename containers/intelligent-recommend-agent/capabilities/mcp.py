@@ -36,7 +36,7 @@ def start_mcp_servers(wait_timeout: int = 10) -> None:
             text=True,
         )
         console.print(f"🔺 Started MCP server '{name}' with PID {process.pid}.")
-        
+
         # Wait for the server to be ready
         ready = False
         last_exception = None
@@ -48,7 +48,9 @@ def start_mcp_servers(wait_timeout: int = 10) -> None:
                         ready = True
                         break
                     elif r.status_code == 400:
-                        console.print(f"⚠️ MCP server '{name}' responded with 400 Bad Request, assuming it's ready.")
+                        console.print(
+                            f"⚠️ MCP server '{name}' responded with 400 Bad Request, assuming it's ready."
+                        )
                         ready = True
                         break
             except Exception as e:
@@ -64,7 +66,6 @@ def start_mcp_servers(wait_timeout: int = 10) -> None:
             console.print(f"✅ MCP server '{name}' is ready.")
             _mcp_processes[name] = process
 
-
     atexit.register(cleanup_mcp_servers)
 
 
@@ -74,9 +75,10 @@ def cleanup_mcp_servers() -> None:
             process.terminate()  # or process.kill()
             console.print(f"🔻 Subprocess '{name}' terminated.")
 
-async def init_module() -> None:    
+
+async def init_module() -> None:
     start_mcp_servers()
-    
+
     global mcp_client
     mcp_client = MultiServerMCPClient(
         {
@@ -87,7 +89,7 @@ async def init_module() -> None:
                 "env": {
                     "NAVER_CLIENT_ID": settings.NAVER_DEV_CLIENT_ID,
                     "NAVER_CLIENT_SECRET": settings.NAVER_DEV_CLIENT_SECRET,
-                }
+                },
             },
             "google-places": {
                 "transport": "streamable_http",
@@ -107,7 +109,7 @@ async def init_module() -> None:
                 },
                 "capabilities": {
                     "completion": False,
-                }
+                },
             },
         }
     )

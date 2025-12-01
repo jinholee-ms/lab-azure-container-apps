@@ -26,18 +26,26 @@ def _control_agent_properties():
         table.add_column("Locked", style="green")
         table.add_column("Activated", style="cyan")
         for idx, agent in enumerate(agent_manager.all_agents):
-            table.add_row(str(idx + 1), agent.name, str(agent.locked), str(agent.activated))
+            table.add_row(
+                str(idx + 1), agent.name, str(agent.locked), str(agent.activated)
+            )
         console.print(table)
 
-        number = Prompt.ask("\nEnter number", choices=[str(i) for i in range(1, len(agent_manager.all_agents)+1)] + ['q'])
-        if number.lower() == 'q':
+        number = Prompt.ask(
+            "\nEnter number",
+            choices=[str(i) for i in range(1, len(agent_manager.all_agents) + 1)]
+            + ["q"],
+        )
+        if number.lower() == "q":
             break
-        
+
         if agent_manager.get_agent(int(number) - 1).locked:
             console.print("[red]❌ This agent is locked and cannot be modified.[/]")
             continue
 
-        property = Prompt.ask("\nEnter property to toggle: (a)ctivated/(d)eactivated", choices=["a", "d"])
+        property = Prompt.ask(
+            "\nEnter property to toggle: (a)ctivated/(d)eactivated", choices=["a", "d"]
+        )
         if property == "a":
             agent_manager.activate_agent(int(number) - 1)
         elif property == "d":
@@ -48,7 +56,14 @@ async def execute_interactive_shell():
     orchestrator = Orchestrator()
     while True:
         try:
-            console.print(Rule(" AI Agent Interactive Shell", align="center", style="bold green", characters="="))
+            console.print(
+                Rule(
+                    " AI Agent Interactive Shell",
+                    align="center",
+                    style="bold green",
+                    characters="=",
+                )
+            )
             console.print("[bold green]Welcome to the AI Agent Interactive Shell![/]")
             console.print("Type your messages below to interact with the AI agent.")
             console.print("Type '/quit' to exit the shell.")
@@ -56,10 +71,14 @@ async def execute_interactive_shell():
             console.print("Type '/mcp' to view MCP server properties.")
             console.print("Type '/settings' to view or change settings.")
             console.print("")
-            console.print(Rule("User Utterance", align="center", style="bold blue", characters="-"))
+            console.print(
+                Rule(
+                    "User Utterance", align="center", style="bold blue", characters="-"
+                )
+            )
             user_input = console.input("[blue]😊 User> ")
             console.print(Rule(style="bold blue", characters="-"))
-            
+
             if not user_input.strip():
                 continue
             elif user_input.startswith("/quit"):
@@ -73,24 +92,31 @@ async def execute_interactive_shell():
                 settings.show()
             else:
                 console.print("")
-                console.print(Rule("Assistant Utterance", align="center", style="bold yellow", characters="-"))
+                console.print(
+                    Rule(
+                        "Assistant Utterance",
+                        align="center",
+                        style="bold yellow",
+                        characters="-",
+                    )
+                )
                 with console.status("[yellow]Thinking...[/]", spinner="bouncingBar"):
                     answer = await orchestrator.run(user_input)
-                
+
                 console.print(Panel(f"[yellow]🤖 Assistant> {answer}[/]"))
                 console.print(Rule(style="bold yellow", characters="-"))
         except (EOFError, KeyboardInterrupt):
             break
-    
+
 
 async def main():
     await init_ms_foundry_monitoring_module()
     await init_mcp_module()
     await execute_interactive_shell()
 
+
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
         console.print("\n[red]Interrupted by user. Exiting...[/]")
-    

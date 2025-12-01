@@ -18,8 +18,8 @@ class PlanningStepArgument(BaseModel):
             "Indices are 0-based and must refer only to earlier steps."
         ),
     )
-    
-    
+
+
 class PlanningStepsArgument(BaseModel):
     steps: list[PlanningStepArgument]
 
@@ -33,13 +33,13 @@ class Task(PlanningStepArgument):
 
 class Workflow(BaseModel):
     tasks: list[Task] = Field(default_factory=list)
-    
+
     def get_next_task(self) -> Optional[Task]:
         for task in self.tasks:
             if task.finished_at is None:
                 return task
         return None
-    
+
     def get_last_task(self) -> Optional[Task]:
         if self.tasks:
             return self.tasks[-1]

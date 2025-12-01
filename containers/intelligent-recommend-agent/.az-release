@@ -1,0 +1,5 @@
+RELEASE_RESOURCE_GROUP="rg-client-container-apps-community-001"
+RELEASE_CONTAINER_APP_NAME="ca-intel-rec-agent"
+RELEASE_CONTAINER_APP_IMAGE="jinholeems/intel-rec-agent"
+RELEASE_CONTAINER_APP_ENVIRONMENT="lab-az-container-apps"
+RELEASE_CONTAINER_APP_TARGET_PORT="8000"

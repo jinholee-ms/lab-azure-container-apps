@@ -21,13 +21,13 @@ from common import console, settings
 class AgentManager:
     def __init__(self):
         self.all_agents: list = []
-        
+
     def get_agent(self, index: int) -> Any:
         return self.all_agents[index]
 
     def activate_agent(self, index: str) -> None:
         self.all_agents[index].activated = True
-        
+
     def deactivate_agent(self, index: str) -> None:
         self.all_agents[index].activated = False
 
@@ -62,14 +62,14 @@ class AgentBase(metaclass=AgentBaseMeta):
     activated: bool = False
     locked: bool = False
     task_operator: "TaskOperator" = None
-    
+
     def __init__(self):
         self._model = AzureChatOpenAI(
             azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
             api_key=settings.AZURE_OPENAI_API_KEY,
             azure_deployment=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
             api_version=settings.AZURE_OPENAI_API_VERSION,
-            #callbacks=[DebugCallbackHandler()],
+            # callbacks=[DebugCallbackHandler()],
         )
         self._checkpointer = InMemorySaver()
         self._history_store: dict[str, InMemoryChatMessageHistory] = {}
@@ -78,15 +78,15 @@ class AgentBase(metaclass=AgentBaseMeta):
         if session_id not in self._history_store:
             self._history_store[session_id] = InMemoryChatMessageHistory()
         return self._history_store[session_id]
-        
+
     @abc.abstractmethod
     def generate_system_prompt(self, **kwargs) -> str:
         raise NotImplementedError()
-    
+
     @abc.abstractmethod
     def generate_user_prompt(self, **kwargs) -> str:
         raise NotImplementedError()
-        
+
     @abc.abstractmethod
     async def get_tools(self) -> list[callable]:
         return []
@@ -96,9 +96,13 @@ class AgentBase(metaclass=AgentBaseMeta):
             tools = await self.get_tools()
             return self._model.bind_tools(tools)
         return self._model
-        
+
     async def run_langchain_agent(
-        self, system_prompt: str, user_prompt: str, session_id: str = uuid4().hex, response_format: Any = None,
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        session_id: str = uuid4().hex,
+        response_format: Any = None,
     ) -> Any:
         model = await self.get_model()
         if response_format is not None:
@@ -120,20 +124,25 @@ class AgentBase(metaclass=AgentBaseMeta):
         return response
 
     async def run_langgraph_agent(
-        self, system_prompt: str, user_prompt: str, session_id: str = uuid4().hex,
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        session_id: str = uuid4().hex,
     ) -> Any:
-        chain = ChatPromptTemplate.from_messages([
-        	("system", system_prompt),
-            MessagesPlaceholder("history"),
-			("human", user_prompt),
-		]) | (await self.get_model()).bind_tools(await self.get_tools())
+        chain = ChatPromptTemplate.from_messages(
+            [
+                ("system", system_prompt),
+                MessagesPlaceholder("history"),
+                ("human", user_prompt),
+            ]
+        ) | (await self.get_model()).bind_tools(await self.get_tools())
 
         chain = RunnableWithMessageHistory(
             chain,
             get_session_history=self.get_history,
             history_messages_key="history",
         )
-        
+
         return await chain.ainvoke(
             {},
             config={"configurable": {"session_id": session_id}},
@@ -170,8 +179,13 @@ class AgentBase(metaclass=AgentBaseMeta):
             # Messages list
             if "messages" in answer and isinstance(answer["messages"], list):
                 for m in reversed(answer["messages"]):
-                    if isinstance(m, AIMessage) or getattr(m, "type", None) in ("ai", "assistant"):
-                        content = getattr(m, "content", None) or getattr(m, "text", None)
+                    if isinstance(m, AIMessage) or getattr(m, "type", None) in (
+                        "ai",
+                        "assistant",
+                    ):
+                        content = getattr(m, "content", None) or getattr(
+                            m, "text", None
+                        )
                         if content:
                             return str(content)
                 if answer["messages"]:
@@ -184,7 +198,9 @@ class AgentBase(metaclass=AgentBaseMeta):
                     )
                 return None
             # Intermediate steps (if present)
-            if "intermediate_steps" in answer and isinstance(answer["intermediate_steps"], list):
+            if "intermediate_steps" in answer and isinstance(
+                answer["intermediate_steps"], list
+            ):
                 try:
                     return json.dumps(answer, ensure_ascii=False, indent=2)
                 except Exception:
@@ -212,15 +228,18 @@ class AgentBase(metaclass=AgentBaseMeta):
         except Exception:
             return repr(answer)
 
+
 class TaskOperator:
     def __init__(self, agent: AgentBase) -> None:
         self.agent = agent
 
     async def run_node(self, state: AgentGraphState) -> str:
-        with console.status(f"[grey] {self.agent.name} is processing...[/]", spinner="arc"):
+        with console.status(
+            f"[grey] {self.agent.name} is processing...[/]", spinner="arc"
+        ):
             if (workflow := state.workflow) and (task := workflow.get_next_task()):
                 task.started_at = datetime.datetime.now(datetime.UTC)
-                
+
                 if task.use_answers_from:
                     previous_tasks = [workflow.tasks[i] for i in task.use_answers_from]
                 else:
@@ -234,5 +253,10 @@ class TaskOperator:
         return state
 
     @abc.abstractmethod
-    async def exec(self, state: AgentGraphState, task: Task = None, previous_tasks: list[Task] = None) -> None:
+    async def exec(
+        self,
+        state: AgentGraphState,
+        task: Task = None,
+        previous_tasks: list[Task] = None,
+    ) -> None:
         raise NotImplementedError()

@@ -39,7 +39,9 @@ def stock_history(stock: str, country: str, from_date: str, to_date: str) -> str
     Returns: Head of dataframe as string plus row count.
     """
     fd, td = _validate_date_range(from_date, to_date)
-    df = investpy.get_stock_historical_data(stock=stock, country=country, from_date=fd, to_date=td)
+    df = investpy.get_stock_historical_data(
+        stock=stock, country=country, from_date=fd, to_date=td
+    )
     head = df.head().to_string()
     return f"Rows: {len(df)}\n{head}"
 
@@ -55,7 +57,9 @@ def index_history(index: str, country: str, from_date: str, to_date: str) -> str
     Returns: Summary string.
     """
     fd, td = _validate_date_range(from_date, to_date)
-    df = investpy.get_index_historical_data(index=index, country=country, from_date=fd, to_date=td)
+    df = investpy.get_index_historical_data(
+        index=index, country=country, from_date=fd, to_date=td
+    )
     return f"Rows: {len(df)}\n{df.head().to_string()}"
 
 
@@ -103,12 +107,21 @@ def stock_overview(stock: str, country: str) -> str:
         recent_str = recent
     else:
         recent_str = recent.tail(5).to_string()
-    profile_str = profile if isinstance(profile, str) else "\n".join(f"{k}: {v}" for k, v in profile.items())
+    profile_str = (
+        profile
+        if isinstance(profile, str)
+        else "\n".join(f"{k}: {v}" for k, v in profile.items())
+    )
     return f"Recent Data (last 5 rows):\n{recent_str}\n\nProfile:\n{profile_str}"
 
 
 @tool("economic_calendar", return_direct=False)
-def economic_calendar(from_date: str, to_date: str, countries: Optional[List[str]] = None, importance: Optional[List[str]] = None) -> str:
+def economic_calendar(
+    from_date: str,
+    to_date: str,
+    countries: Optional[List[str]] = None,
+    importance: Optional[List[str]] = None,
+) -> str:
     """Retrieve economic calendar events.
     Args:
         from_date: Start date.
@@ -118,7 +131,9 @@ def economic_calendar(from_date: str, to_date: str, countries: Optional[List[str
     Returns: First rows summary.
     """
     fd, td = _validate_date_range(from_date, to_date)
-    df = investpy.economic_calendar(from_date=fd, to_date=td, countries=countries, importance=importance)
+    df = investpy.economic_calendar(
+        from_date=fd, to_date=td, countries=countries, importance=importance
+    )
     return f"Rows: {len(df)}\n{df.head().to_string()}"
 
 
@@ -132,4 +147,11 @@ TOOL_MAP: Dict[str, Any] = {
 }
 
 
-__all__ = ["stock_history", "index_history", "search_assets", "stock_overview", "economic_calendar", "TOOL_MAP"]
+__all__ = [
+    "stock_history",
+    "index_history",
+    "search_assets",
+    "stock_overview",
+    "economic_calendar",
+    "TOOL_MAP",
+]

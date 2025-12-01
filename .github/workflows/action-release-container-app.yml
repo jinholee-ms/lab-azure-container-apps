@@ -41,10 +41,75 @@ jobs:
           cd ${{ inputs.working_dir }}
           make docker-buildx IMAGE_TAG=${{ inputs.tag_version }}
       - uses: azure/cli@v2
+        name: check existing resource group
         with:
           inlineScript: |
             set -a
-            . "${{ inputs.working_dir }}/env"
+            . "${{ inputs.working_dir }}/.az-release"
+            set +a
+            az group show -n "$RELEASE_RESOURCE_GROUP"
+      - uses: azure/cli@v2
+        name: create resource group if missing
+        if: failure()
+        with:
+          inlineScript: |
+            set -a
+            . "${{ inputs.working_dir }}/.az-release"
+            set +a
+            az group create -n "$RELEASE_RESOURCE_GROUP" -l "$RELEASE_LOCATION"
+      - uses: azure/cli@v2
+        name: check existing container app environment
+        with:
+          inlineScript: |
+            set -a
+            . "${{ inputs.working_dir }}/.az-release"
+            set +a
+            az containerapp env show \
+              --resource-group "$RELEASE_RESOURCE_GROUP" \
+              --name "$RELEASE_CONTAINER_APP_ENVIRONMENT"
+      - uses: azure/cli@v2
+        name: create container app environment if missing
+        if: failure()
+        with:
+          inlineScript: |
+            set -a
+            . "${{ inputs.working_dir }}/.az-release"
+            set +a
+            az containerapp env create \
+              --resource-group "$RELEASE_RESOURCE_GROUP" \
+              --name "$RELEASE_CONTAINER_APP_ENVIRONMENT" \
+              --location korea-central
+      - uses: azure/cli@v2
+        name: check existing container app
+        with:
+          inlineScript: |
+            set -a
+            . "${{ inputs.working_dir }}/.az-release"
+            set +a
+            az containerapp show \
+              --resource-group "$RELEASE_RESOURCE_GROUP" \
+              --name "$RELEASE_CONTAINER_APP_NAME"
+      - uses: azure/cli@v2
+        name: create container app if missing
+        if: failure()
+        with:
+          inlineScript: |
+            set -a
+            . "${{ inputs.working_dir }}/.az-release"
+            set +a
+            az containerapp create \
+              --resource-group "$RELEASE_RESOURCE_GROUP" \
+              --name "$RELEASE_CONTAINER_APP_NAME" \
+              --image "$RELEASE_CONTAINER_APP_IMAGE:${{ inputs.tag_version }}" \
+              --ingress external \
+              --environment "$RELEASE_CONTAINER_APP_ENVIRONMENT" \
+              --target-port "$RELEASE_CONTAINER_APP_TARGET_PORT"
+      - uses: azure/cli@v2
+        name: update container app image
+        with:
+          inlineScript: |
+            set -a
+            . "${{ inputs.working_dir }}/.az-release"
             set +a
             
             az containerapp update \

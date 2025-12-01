@@ -13,14 +13,15 @@ from capabilities.graphrag import GraphRAG
 def built_graphrag():
     path = Path(__file__).parent / "graphrag"
     g = GraphRAG(path=path, force=True, auto_delete=True)
-    
+
     documents = pd.read_parquet("assets/graphrag/documents.parquet")
     documents = documents.loc[:, ["id", "title", "text", "creation_date"]]
     asyncio.run(g.build(documents=documents))
-    
+
     return g
 
-'''
+
+"""
 def test_init_creates_project():
     path = Path(__file__).parent / "graphrag"
     
@@ -52,11 +53,12 @@ def test_init_creates_project():
     working_path = g.path
     del g
     assert not working_path.exists()
-'''
+"""
+
 
 @pytest.mark.asyncio
 async def test_graphrag_global_search(built_graphrag):
     assert (built_graphrag.path / "output").exists()
-    
+
     result = await built_graphrag.retrieve_on_global("What is Dulce ?")
     assert result
