@@ -42,15 +42,20 @@ jobs:
           make docker-buildx IMAGE_TAG=${{ inputs.tag_version }}
       - uses: azure/cli@v2
         name: check existing resource group
+        id: check-az-resource-group
         with:
           inlineScript: |
             set -a
             . "${{ inputs.working_dir }}/.az-release"
             set +a
-            az group show -n "$RELEASE_RESOURCE_GROUP"
+            if az group show -n "$RELEASE_RESOURCE_GROUP" > /dev/null 2>&1; then
+              echo "exists=true" >> $GITHUB_OUTPUT
+            else
+              echo "exists=false" >> $GITHUB_OUTPUT
+            fi
       - uses: azure/cli@v2
         name: create resource group if missing
-        if: failure()
+        if: steps.check-az-resource-group.outputs.exists == 'false'
         with:
           inlineScript: |
             set -a
@@ -59,17 +64,22 @@ jobs:
             az group create -n "$RELEASE_RESOURCE_GROUP" -l "$RELEASE_LOCATION"
       - uses: azure/cli@v2
         name: check existing container app environment
+        id: check-az-container-app-environment
         with:
           inlineScript: |
             set -a
             . "${{ inputs.working_dir }}/.az-release"
             set +a
-            az containerapp env show \
+            if az containerapp env show \
               --resource-group "$RELEASE_RESOURCE_GROUP" \
-              --name "$RELEASE_CONTAINER_APP_ENVIRONMENT"
+              --name "$RELEASE_CONTAINER_APP_ENVIRONMENT" > /dev/null 2>&1; then
+              echo "exists=true" >> $GITHUB_OUTPUT
+            else
+              echo "exists=false" >> $GITHUB_OUTPUT
+            fi
       - uses: azure/cli@v2
         name: create container app environment if missing
-        if: failure()
+        if: steps.check-az-container-app-environment.outputs.exists == 'false'
         with:
           inlineScript: |
             set -a
@@ -81,17 +91,22 @@ jobs:
               --location koreacentral
       - uses: azure/cli@v2
         name: check existing container app
+        id: check-az-container-app
         with:
           inlineScript: |
             set -a
             . "${{ inputs.working_dir }}/.az-release"
             set +a
-            az containerapp show \
+            if az containerapp show \
               --resource-group "$RELEASE_RESOURCE_GROUP" \
-              --name "$RELEASE_CONTAINER_APP_NAME"
+              --name "$RELEASE_CONTAINER_APP_NAME" > /dev/null 2>&1; then
+              echo "exists=true" >> $GITHUB_OUTPUT
+            else
+              echo "exists=false" >> $GITHUB_OUTPUT
+            fi
       - uses: azure/cli@v2
         name: create container app if missing
-        if: failure()
+        if: steps.check-az-container-app.outputs.exists == 'false'
         with:
           inlineScript: |
             set -a

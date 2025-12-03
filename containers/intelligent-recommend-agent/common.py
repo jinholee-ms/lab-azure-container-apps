@@ -1,3 +1,5 @@
+import argparse
+import asyncio
 from functools import lru_cache
 
 from pydantic import AliasChoices, Field
@@ -96,5 +98,32 @@ async def init_ms_foundry_monitoring_module():
     ...
 
 
+def init_console() -> Console:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("cmd")
+
+    args = parser.parse_args()
+    if args.cmd == "web-terminal":
+        class QueueWriter:
+            def __init__(self):
+                self.queue = asyncio.Queue()
+                
+            def write(self, data: str) -> int:
+                # rich가 여러 번 잘라서 쓰기 때문에 빈 문자열은 무시
+                if data:
+                    self.queue.put_nowait(data)
+                return len(data)
+
+            def flush(self) -> None:
+                # 콘솔 인터페이스 맞추기용
+                pass
+            
+        console = Console(file=QueueWriter(), force_terminal=True, color_system="truecolor")
+    else:
+        console = Console()
+
+    return console
+
+
 settings = get_settings()
-console = Console()
+console = init_console()
