@@ -67,10 +67,10 @@ class GraphRAG:
             "map_prompt": "prompts/global_search_map_system_prompt.txt",
             "reduce_prompt": "prompts/global_search_reduce_system_prompt.txt",
         },
-        "input": {
-            "file_type": "text",
-            "storage": {"base_dir": "input", "type": "file"},
-        },
+        #"input": {
+        #    "file_type": "text",
+        #    "storage": {"base_dir": "input", "type": "file"},
+        #},
         "local_search": {
             "chat_model_id": "default_chat_model",
             "embedding_model_id": "default_embedding_model",
@@ -161,7 +161,7 @@ class GraphRAG:
             shutil.rmtree(self.path)
 
     async def build(self, documents: pd.DataFrame | None = None):
-        is_update_run = (self.path / "output").exists()
+        is_update_run = (self.path / "output" / "entities.parquet").exists()
         console.log(f"Building graphrag index...{is_update_run=}")
 
         result = await api.build_index(

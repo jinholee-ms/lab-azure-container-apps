@@ -39,8 +39,14 @@ class PlanningOperator(TaskOperator):
         previous_tasks: list[Task] = None,
     ) -> None:
         # model = (await self.agent.get_model(include_tools=False)).with_structured_output(PlanningStepsArgument)
+
         response = await self.agent.run_langchain_agent(
-            self.agent.generate_system_prompt(agents=state.input.agents),
+            self.agent.generate_system_prompt(
+                agents=[{
+                    "name": agent.name,
+                    "description": agent.description,
+                } for agent in state.input.agents]
+            ),
             self.agent.generate_user_prompt(question=state.input.question),
             session_id=state.session_id,
             response_format=PlanningStepsArgument,

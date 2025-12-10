@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     AZURE_OPENAI_CHAT_DEPLOYMENT: str = Field(
         ..., validation_alias=AliasChoices("AZURE_OPENAI_CHAT_DEPLOYMENT")
     )
+    AZURE_OPENAI_REASONING_DEPLOYMENT: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_OPENAI_REASONING_DEPLOYMENT")
+    )
     AZURE_OPENAI_EMBEDDING_DEPLOYMENT: str = Field(
         ..., validation_alias=AliasChoices("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
     )
@@ -107,7 +110,7 @@ def init_console() -> Console:
         class QueueWriter:
             def __init__(self):
                 self.queue = asyncio.Queue()
-                
+
             def write(self, data: str) -> int:
                 # rich가 여러 번 잘라서 쓰기 때문에 빈 문자열은 무시
                 if data:
@@ -117,7 +120,7 @@ def init_console() -> Console:
             def flush(self) -> None:
                 # 콘솔 인터페이스 맞추기용
                 pass
-            
+
         console = Console(file=QueueWriter(), force_terminal=True, color_system="truecolor")
     else:
         console = Console()

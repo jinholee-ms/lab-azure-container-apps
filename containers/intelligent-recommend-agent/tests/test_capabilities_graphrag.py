@@ -24,7 +24,7 @@ def built_graphrag():
 """
 def test_init_creates_project():
     path = Path(__file__).parent / "graphrag"
-    
+
     # Initialize GraphRAG without force to create project
     g = GraphRAG(path=path)
     assert g.path.exists()
@@ -34,7 +34,7 @@ def test_init_creates_project():
     del g
     assert working_path.exists()
     shutil.rmtree(working_path)
-    
+
     # Initialize GraphRAG with auto_delete to create and delete project
     g = GraphRAG(path=path, auto_delete=True)
     assert g.path.exists()
@@ -43,7 +43,7 @@ def test_init_creates_project():
     working_path = g.path
     del g
     assert not working_path.exists()
-    
+
     # Initialize GraphRAG with force to recreate project
     g = GraphRAG(path=path)
     g = GraphRAG(path=path, force=True, auto_delete=True)

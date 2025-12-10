@@ -14,7 +14,7 @@
 # =============================
 다음은 현재 시스템에서 사용 가능한 에이전트들의 정보이다. 각 step의 `agent` 필드는 반드시 아래 목록 중 하나의 `name`과 정확히 일치해야 한다.
 {% for agent in agents %}
-- {{ agent.name }}: {{ agent.description }}
+- {{ agent["name"] }}: {{ agent["description"] }}
 {% endfor %}
 
 # =============================

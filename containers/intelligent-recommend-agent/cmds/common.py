@@ -1,4 +1,5 @@
 import asyncio
+from uuid import uuid4
 
 from rich.rule import Rule
 from rich.panel import Panel
@@ -34,17 +35,46 @@ async def _control_agent_properties(input_cb: callable):
         if number.lower() == "q":
             break
 
+        if not number.isdigit() or int(number) < 1 or int(number) > len(agent_manager.all_agents):
+            console.print("[red]❌ Invalid agent number. Please try again.[/]")
+            continue
         if agent_manager.get_agent(int(number) - 1).locked:
             console.print("[red]❌ This agent is locked and cannot be modified.[/]")
             continue
 
         property = Prompt.ask(
-            "\nEnter property to toggle: (a)ctivated/(d)eactivated", choices=["a", "d"]
+            "\nEnter property to toggle: (a)ctivated/(d)eactivated/(c)hat", choices=["a", "d", "c"]
         )
-        if property == "a":
+        if property.lower() == "a":
             agent_manager.activate_agent(int(number) - 1)
-        elif property == "d":
+        elif property.lower() == "d":
             agent_manager.deactivate_agent(int(number) - 1)
+        elif property.lower() == "c":
+            user_input = await input_cb() if asyncio.iscoroutinefunction(input_cb) else input_cb()
+            console.print(Rule(style="bold blue", characters="-"))
+            console.print("")
+            console.print(
+                Rule(
+                    "Assistant Utterance",
+                    align="center",
+                    style="bold yellow",
+                    characters="-",
+                )
+            )
+
+            if agent := agent_manager.get_agent(int(number) - 1):
+                with console.status(
+                    f"[blue] {agent.name} is processing...[/]", spinner="aesthetic"
+                ):
+                    response = await agent.run_langchain_agent(
+                        agent.generate_system_prompt(),
+                        agent.generate_user_prompt(question=user_input),
+                        session_id=uuid4().hex,
+                    )
+                    answer = agent.extract_langchain_agent_answer(response)
+
+            console.print(Panel(f"[yellow]🤖 Assistant> {answer}[/]"))
+            console.print(Rule(style="bold yellow", characters="-"))
 
 
 async def execute_interactive_shell(input_cb: callable):
@@ -95,8 +125,7 @@ async def execute_interactive_shell(input_cb: callable):
                         characters="-",
                     )
                 )
-                with console.status("[yellow]Thinking...[/]", spinner="bouncingBar"):
-                    answer = await orchestrator.run(user_input)
+                answer = await orchestrator.run(user_input)
 
                 console.print(Panel(f"[yellow]🤖 Assistant> {answer}[/]"))
                 console.print(Rule(style="bold yellow", characters="-"))

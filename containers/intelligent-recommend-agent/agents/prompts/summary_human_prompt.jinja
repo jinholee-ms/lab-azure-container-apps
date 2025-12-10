@@ -5,9 +5,9 @@
 아래는 이전 단계 에이전트들이 생성한 중간 결과입니다.
 
 {% if agents %}
-{% for agent_name, answers in agents.items() %}
+{% for agent_name in agents %}
 [{{ agent_name }} 결과]
-{% for ans in answers %}
+{% for ans in agents[agent_name] %}
 - {{ ans }}
 {% endfor %}
 

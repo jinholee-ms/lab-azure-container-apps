@@ -30,7 +30,7 @@ class Orchestrator:
 
     def build(self) -> CompiledStateGraph:
         agents = agent_manager.get_activated_agents()
-        operators = [agent.task_operator(agent) for agent in agents]
+        operators = [agent.task_operator(agent) for agent in agents if agent.task_operator is not None]
 
         graph = StateGraph(AgentGraphState)
         graph.add_node("route_agent_flow", self.route_agent_flow)
