@@ -1,4 +1,3 @@
-import datetime
 import httpx
 from pathlib import Path
 
@@ -6,8 +5,7 @@ from langchain_core.tools import tool
 from langchain_core.prompts import PromptTemplate
 
 from agents.base import AgentBase, TaskOperator
-from agents.schema import AgentGraphState, Task
-from capabilities.mcp import get_mcp_client
+from agents.schema import AgentGraphStateBase, AgentProfile
 from common import settings
 
 
@@ -56,27 +54,20 @@ async def get_forecast(city: str, units: str = "metric") -> dict:
 
 
 class WeatherOperator(TaskOperator):
-    async def exec(
-        self,
-        state: AgentGraphState,
-        task: Task = None,
-        previous_tasks: list[Task] = None,
-    ) -> None:
-        response = await self.agent.run_langchain_agent(
-            self.agent.generate_system_prompt(),
-            self.agent.generate_user_prompt(question=task.question),
-            session_id=state.session_id,
+    async def exec(self, state: AgentGraphStateBase) -> None:
+        await self.agent.initialize()
+        response = await self.agent.run(
+            self.agent.generate_user_prompt(question=state.question),
         )
-
-        task.answer = self.agent.extract_langchain_agent_answer(response)
+        state.answer = self.agent.extract_answer(response)
 
 
 class WeatherAgent(AgentBase):
-    name: str = "WeatherAgent"
-    description: str = "실시간 날씨 정보 조회를 담당하는 에이전트"
-    activated: bool = True
-    locked: bool = False
-    task_operator = WeatherOperator
+    profile: AgentProfile = AgentProfile(
+        name="WeatherAgent",
+        description="실시간 날씨 정보 조회를 담당하는 에이전트",
+        task_operator=WeatherOperator,
+    )
 
     def generate_system_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(

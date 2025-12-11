@@ -5,23 +5,29 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 
 
+class AgentProfile(BaseModel):
+    name: str = Field(description="Name of the agent")
+    description: str = Field(description="Description of the agent's purpose and capabilities")
+    task_operator: Any = Field(description="Task operator class associated with the agent")
+    chat_in_settings: bool = Field(default=True, description="Whether to chat to this agent in chat settings")
+
+
 class PlanningStepArgument(BaseModel):
     title: str = Field(description="Short title of the step")
     description: str = Field(description="What to do in this step")
     agent: str = Field(description="Agent responsible for this step")
     question: str = Field(description="Question or input for this step")
-    use_answers_from: list[int] = Field(
-        default_factory=list,
-        description=(
-            "Indices of previous steps whose answers should be provided "
-            "as context when executing this step. "
-            "Indices are 0-based and must refer only to earlier steps."
-        ),
-    )
 
 
 class PlanningStepsArgument(BaseModel):
-    steps: list[PlanningStepArgument]
+    steps: list[PlanningStepArgument] = Field(description="List of planning steps")
+
+
+class TriageAgentOutput(BaseModel):
+    action: str = Field(description="The action to take, e.g., 'route' or 'clarify'")
+    agent: Optional[str] = Field(description="Agent selected for 'route' action")
+    reason: Optional[str] = Field(description="Reason for the 'route' action")
+    question: Optional[str] = Field(description="Clarification question for 'clarify' action")
 
 
 class Task(PlanningStepArgument):
@@ -46,13 +52,27 @@ class Workflow(BaseModel):
         return None
 
 
-class AgentGraphInput(BaseModel):
+class AgentContextBase(BaseModel):
+    ...
+
+
+class TriageAgentContext(AgentContextBase):
+    selected_agent_name: Optional[str] = None
+
+
+class TravelAgentContext(AgentContextBase):
+    profile: Optional[str] = None
+    searched_data: Optional[str] = None
+    itinerary_suggestion: Optional[str] = None
+    recommendations: Optional[str] = None
+
+
+class AgentGraphStateBase(BaseModel):
     question: str
-    agents: list
+    answer: Optional[str] = None
+    context: Optional[Any] = None
 
 
-class AgentGraphState(BaseModel):
-    session_id: str
-    input: AgentGraphInput
-    workflow: Workflow = None
-    answer: str = None
+class PlannedAgentGraphState(AgentGraphStateBase):
+    sub_agents: list[Any] = []
+    workflow: Optional[Workflow] = None

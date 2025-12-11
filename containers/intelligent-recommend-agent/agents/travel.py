@@ -1,65 +1,68 @@
-import datetime
-from pathlib import Path
+from uuid import uuid4
 
-from langchain_core.prompts import PromptTemplate
+from langgraph.graph import END, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
 from agents.base import AgentBase, TaskOperator
-from agents.schema import AgentGraphState, Task
-from capabilities.mcp import get_mcp_client
+from agents.schema import AgentGraphStateBase, AgentProfile, TravelAgentContext
+from agents.travel_itinerary_suggestion import TravelItinerarySuggestionAgent
+from agents.travel_profile import TravelProfileAgent
+from agents.travel_recommend import TravelRecommendAgent
+from agents.travel_summary import TravelSummaryAgent
 from common import console
 
 
-class TravelOperator(TaskOperator):
-    async def exec(
-        self,
-        state: AgentGraphState,
-        task: Task = None,
-        previous_tasks: list[Task] = None,
-    ) -> None:
-        sanitized_tasks = []
-        if previous_tasks:
-            for index, t in enumerate(previous_tasks):
-                sanitized_tasks.append(
-                    {
-                        "index": index,
-                        "agent": t.agent,
-                        "input": t.question,
-                        "output": t.answer,
-                    }
-                )
+class TravelAgentGraph:
+    def __init__(self, session_id: str = None) -> None:
+        self.session_id: str = uuid4().hex if not session_id else session_id
+        self.sub_agents = [
+            ("TravelProfileAgent", TravelProfileAgent),
+            ("TravelItinerarySuggestionAgent", TravelItinerarySuggestionAgent),
+            ("TravelRecommendAgent", TravelRecommendAgent),
+            ("TravelSummaryAgent", TravelSummaryAgent),
+        ]
+        self.graph = self.build()
 
-        response = await self.agent.run_langchain_agent(
-            self.agent.generate_system_prompt(),
-            self.agent.generate_user_prompt(
-                question=task.question,
-                tasks=sanitized_tasks,
-            ),
-            session_id=state.session_id,
+    def build(self) -> CompiledStateGraph:
+        graph = StateGraph(AgentGraphStateBase)
+
+        for name, agent_cls in self.sub_agents:
+            task_operator = agent_cls.profile.task_operator(agent_cls(self.session_id))
+            graph.add_node(name, task_operator.run_node)
+
+        graph.set_entry_point("TravelProfileAgent")
+
+        graph.add_edge("TravelProfileAgent", "TravelItinerarySuggestionAgent")
+        graph.add_edge("TravelItinerarySuggestionAgent", "TravelRecommendAgent")
+        graph.add_edge("TravelRecommendAgent", "TravelSummaryAgent")
+        graph.add_edge("TravelSummaryAgent", END)
+
+        compiled = graph.compile()
+        console.log("🛠️ TravelAgent graph compiled successfully.")
+        console.log(compiled.get_graph().draw_ascii())
+
+        return compiled
+
+    async def run(self, question: str) -> str:
+        response = await self.graph.ainvoke(
+            AgentGraphStateBase(context=TravelAgentContext(), question=question)
         )
+        return response.get("answer")
 
-        task.answer = self.agent.extract_langchain_agent_answer(response)
+
+class TravelOperator(TaskOperator):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.graph = TravelAgentGraph()
+
+    async def exec(self, state: AgentGraphStateBase) -> None:
+        response = await self.graph.run(state.question)
+        state.answer = response
 
 
 class TravelAgent(AgentBase):
-    name: str = "TravelAgent"
-    description: str = (
-        "여행 관련 정보 수집 및 예약 (호텔, 항공권, 액티비티, 레스토랑 등)을 담당하는 에이전트"
+    profile: AgentProfile = AgentProfile(
+        name="TravelAgent",
+        description="사용자의 여행 계획을 도와주는 에이전트입니다. 여행 일정, 도시, 인원 정보가 필요합니다.",
+        task_operator=TravelOperator,
     )
-    activated: bool = True
-    locked: bool = False
-    task_operator = TravelOperator
-
-    def generate_system_prompt(self, **kwargs) -> str:
-        return PromptTemplate.from_file(
-            Path(__file__).parent / "prompts" / "travel_system_prompt.jinja",
-            template_format="jinja2",
-        ).format(**kwargs)
-
-    def generate_user_prompt(self, **kwargs) -> str:
-        return PromptTemplate.from_file(
-            Path(__file__).parent / "prompts" / "travel_human_prompt.jinja",
-            template_format="jinja2",
-        ).format(**kwargs)
-
-    async def get_tools(self) -> list[callable]:
-        return await get_mcp_client().get_tools(server_name="google-places")

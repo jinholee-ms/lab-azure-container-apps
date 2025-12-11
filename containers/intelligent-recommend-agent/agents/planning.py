@@ -7,7 +7,7 @@ from langchain_core.tools import tool
 from rich.table import Table
 
 from agents.base import AgentBase, TaskOperator
-from agents.schema import PlanningStepsArgument, AgentGraphState, Task, Workflow
+from agents.schema import AgentProfile, PlanningStepsArgument, PlannedAgentGraphState, Task, Workflow
 from common import console
 
 
@@ -32,27 +32,23 @@ async def plan(steps: list) -> PlanningStepsArgument:
 
 
 class PlanningOperator(TaskOperator):
-    async def exec(
-        self,
-        state: AgentGraphState,
-        task: Task = None,
-        previous_tasks: list[Task] = None,
-    ) -> None:
-        # model = (await self.agent.get_model(include_tools=False)).with_structured_output(PlanningStepsArgument)
-
-        response = await self.agent.run_langchain_agent(
-            self.agent.generate_system_prompt(
-                agents=[{
-                    "name": agent.name,
-                    "description": agent.description,
-                } for agent in state.input.agents]
-            ),
-            self.agent.generate_user_prompt(question=state.input.question),
-            session_id=state.session_id,
+    async def exec(self, state: PlannedAgentGraphState) -> None:
+        await self.agent.initialize(
+            deployment_name="gpt-5",
             response_format=PlanningStepsArgument,
+            system_prompt_kwargs={
+                "agents": [{
+                    "name": agent_cls.name,
+                    "description": agent_cls.description,
+                } for _, agent_cls in state.sub_agents],
+            }
         )
 
-        answer = self.agent.extract_langchain_agent_answer(response)
+        response = await self.agent.run(
+            self.agent.generate_user_prompt(question=state.question),
+        )
+
+        answer = self.agent.extract_answer(response)
         if steps := json.loads(answer).get("steps"):
             state.workflow = Workflow(tasks=[Task(**step) for step in steps])
 
@@ -77,13 +73,14 @@ class PlanningOperator(TaskOperator):
 
 
 class PlanningAgent(AgentBase):
-    name: str = "PlanningAgent"
-    description: str = (
-        "사용자의 요청을 여러 개의 단계(step)로 분해하여, 정의된 에이전트들이 실행할 수 있는 Plan을 만드는 에이전트"
+    profile: AgentProfile = AgentProfile(
+        name="PlanningAgent",
+        description=(
+            "사용자의 요청을 여러 개의 단계(step)로 분해하여, 정의된 에이전트들이 실행할 수 있는 Plan을 만드는 에이전트"
+        ),
+        task_operator=PlanningOperator,
+        chat_in_settings=False,
     )
-    activated: bool = True
-    locked: bool = True
-    task_operator = PlanningOperator
 
     def generate_system_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
@@ -96,6 +93,3 @@ class PlanningAgent(AgentBase):
             Path(__file__).parent / "prompts" / "planning_human_prompt.jinja",
             template_format="jinja2",
         ).format(**kwargs)
-
-    async def get_tools(self) -> list[callable]:
-        return []

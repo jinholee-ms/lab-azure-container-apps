@@ -1,0 +1,17 @@
+{% if question %}
+### 📌 사용자 요청
+{{ question }}
+
+{% else %}
+아래 여행 일정과 내 여행 프로필을 기반으로 호텔, 레스토랑, 카페, 투어, 액티비티 등 여행 상품을 추천해줘.
+
+{% endif %}
+{% if itinerary_suggestion %}
+### 📌 여행 일정(Travel Itinerary)
+{{ itinerary_suggestion }}
+
+{% endif %}
+{% if profile %}
+### 👤 사용자 프로필
+{{ profile }}
+{% endif %}

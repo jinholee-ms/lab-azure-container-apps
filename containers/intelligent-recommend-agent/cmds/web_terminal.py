@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from starlette.websockets import WebSocketDisconnect
 import uvicorn
 
-from agents import init_agent_module
+from agents import load_agents
 from capabilities.mcp import init_module as init_mcp_module
 from cmds.common import execute_interactive_shell
 from common import console, init_ms_foundry_monitoring_module
@@ -54,5 +54,5 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def main():
     await init_ms_foundry_monitoring_module()
     await init_mcp_module()
-    await init_agent_module()
+    await load_agents()
     await uvicorn.Server(config=uvicorn.Config(app)).serve()
