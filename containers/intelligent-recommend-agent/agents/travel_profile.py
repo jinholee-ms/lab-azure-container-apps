@@ -119,5 +119,5 @@ class TravelProfileAgent(AgentBase):
         # Convert to DataFrame
         documents = pd.DataFrame(documents)
 
-        # await cls.graphrag.build(documents=documents)
+        await cls.graphrag.build(documents=documents)
         console.print("✅ TravelProfileAgent Graphrag loaded successfully.")
