@@ -50,8 +50,8 @@ async def _execute_agent_prompts_interactive_shell(agent_class, input_cb: callab
                 console.print("[red]❌ Invalid prompt number. Please try again.[/]")
                 continue
 
-            map(lambda x: setattr(x, "selected", False), prompts)
-
+            for p in prompts:
+                p.selected = False
             var = prompts[int(number) - 1]
             var.selected = True
             console.print(f"[green]✅ {role} prompt '{var.filename}' has been selected.[/]")
@@ -59,7 +59,7 @@ async def _execute_agent_prompts_interactive_shell(agent_class, input_cb: callab
 
 async def _execute_agent_chat_interactive_shell(agent_class, input_cb: callable):
     agent = agent_class()
-    await agent.initialize(enable_debugging=True)
+    await agent.initialize()
     while True:
         console.print("")
         console.print("Type '/quit' to exit the shell.")
@@ -92,6 +92,7 @@ async def _control_agent_properties(input_cb: callable):
         table.add_column("Interactive", style="green")
         table.add_column("Activated", style="yellow")
         table.add_column("Deployment Name", style="blue")
+        table.add_column("Enable Debugging", style="red")
         for idx, agent in enumerate(agent_manager.all_agents):
             table.add_row(
                 str(idx + 1),
@@ -99,6 +100,7 @@ async def _control_agent_properties(input_cb: callable):
                 str(agent.profile.interactive),
                 str(agent.profile.activated),
                 agent.profile.deployment_name,
+                str(agent.profile.enable_debugging),
             )
         console.print(table)
 
@@ -114,12 +116,14 @@ async def _control_agent_properties(input_cb: callable):
         agent_class = agent_manager.get_agent(int(number) - 1)
         console.print(
             "Choose a command: "
-            "(c) chat, "
-            "(a) activate, "
-            "(d) deactivate, "
-            "(p) prompts, "
-            "(pd) property.deployment_name, "
-            "(q) quit"
+            "(c)chat, "
+            "(a)activate, "
+            "(d)deactivate, "
+            "(p)prompts, "
+            "(pd)deployment name, "
+            "(de)enable debugging, "
+            "(dd)disable debugging, "
+            "(q)quit"
         )
         cmd = await input_cb() if asyncio.iscoroutinefunction(input_cb) else input_cb()
         if not cmd.strip():
@@ -147,6 +151,16 @@ async def _control_agent_properties(input_cb: callable):
                 console.print(f"[green]✅ deployment name has been updated to '{deployment_name}'[/]")
             else:
                 console.print("[red]❌ deployment name cannot be empty.[/]")
+        elif cmd.lower() == "de":
+            agent_class.profile.enable_debugging = True
+            console.print(
+                f"[green]✅ enable_debugging has been set to '{agent_class.profile.enable_debugging}'[/]"
+            )
+        elif cmd.lower() == "dd":
+            agent_class.profile.enable_debugging = False
+            console.print(
+                f"[green]✅ enable_debugging has been set to '{agent_class.profile.enable_debugging}'[/]"
+            )
         elif cmd.lower() == "p":
             if not agent_class.profile.prompts:
                 console.print("[red]❌ This agent does not have any prompts.[/]")

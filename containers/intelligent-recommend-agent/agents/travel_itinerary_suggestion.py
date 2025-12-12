@@ -50,6 +50,7 @@ class TravelItinerarySuggestionAgent(AgentBase):
             ],
         ),
         deployment_name=settings.AZURE_OPENAI_REASONING_DEPLOYMENT,
+        enable_debugging=True,
     )
 
     def generate_system_prompt(self, **kwargs) -> str:

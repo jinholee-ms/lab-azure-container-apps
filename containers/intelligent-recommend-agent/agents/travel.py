@@ -39,7 +39,7 @@ class TravelAgentGraph:
 
         compiled = graph.compile()
         console.log("🛠️ TravelAgent graph compiled successfully.")
-        console.log(compiled.get_graph().draw_ascii())
+        console.log(compiled.get_graph().draw_ascii(), style="dim")
 
         return compiled
 

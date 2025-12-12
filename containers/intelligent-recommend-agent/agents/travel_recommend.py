@@ -10,7 +10,7 @@ from common import settings
 
 class TravelRecommendOperator(TaskOperator):
     async def exec(self, state: AgentGraphStateBase) -> None:
-        await self.agent.initialize(enable_debugging=True)
+        await self.agent.initialize()
         response = await self.agent.run(
             self.agent.generate_user_prompt(
                 itinerary_suggestion=state.context.itinerary_suggestion,
@@ -42,6 +42,7 @@ class TravelRecommendAgent(AgentBase):
             ],
         ),
         deployment_name=settings.AZURE_OPENAI_REASONING_DEPLOYMENT,
+        enable_debugging=True,
     )
 
     def generate_system_prompt(self, **kwargs) -> str:

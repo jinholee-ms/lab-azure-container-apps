@@ -34,6 +34,7 @@ class AgentProfile(BaseModel):
     interactive: bool = Field(default=True, description="Whether to chat to this agent in chat settings")
     prompts: Optional[AgentPrompt] = Field(default=None, description="Data structure for prompts related to the agent")
     deployment_name: str = Field(default=settings.AZURE_OPENAI_CHAT_DEPLOYMENT, description="Azure OpenAI deployment name for chat models")
+    enable_debugging: bool = Field(default=False, description="Whether to enable debugging for the agent")
 
 
 class PlanningStepArgument(BaseModel):

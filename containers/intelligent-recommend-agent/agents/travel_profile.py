@@ -63,6 +63,7 @@ class TravelProfileAgent(AgentBase):
                 ),
             ],
         ),
+        enable_debugging=True,
     )
 
     assets = [

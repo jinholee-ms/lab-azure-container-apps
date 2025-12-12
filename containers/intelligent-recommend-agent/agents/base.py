@@ -71,7 +71,6 @@ class AgentBase(metaclass=AgentBaseMeta):
         self,
         deployment_name: str = None,
         response_format: Any = None,
-        enable_debugging: bool = None,
         system_prompt_kwargs: dict = {},
     ) -> None:
         kwargs = {
@@ -85,7 +84,7 @@ class AgentBase(metaclass=AgentBaseMeta):
             kwargs["deployment_name"] = self.profile.deployment_name
         if response_format:
             kwargs["model_kwargs"] = {"response_format": response_format}
-        if enable_debugging:
+        if self.profile.enable_debugging:
             kwargs["callbacks"] = [DebugCallbackHandler()]
 
         self.model = AzureChatOpenAI(**kwargs)

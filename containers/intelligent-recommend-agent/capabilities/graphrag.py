@@ -8,6 +8,7 @@ import graphrag.api as api
 from graphrag.cli.initialize import initialize_project_at
 from graphrag.cli.query import _resolve_output_files
 from graphrag.config.load_config import load_config
+from rich.panel import Panel
 
 from common import console, settings
 
@@ -170,7 +171,7 @@ class GraphRAG:
             is_update_run=is_update_run,
         )
         console.log("✅ GraphRAG index built.")
-        console.log("=> result:", result)
+        console.log(result, style="dim")
 
     async def retrieve_on_global(self, query: str) -> str:
         entities = pd.read_parquet(self.path / "output" / "entities.parquet")
@@ -189,8 +190,10 @@ class GraphRAG:
             response_type="Multiple Paragraphs",
         )
         console.log("✅ GraphRAG global search completed.")
-        console.log("=> query:", query)
-        console.log("=> response:", response)
-        console.log("=> context:", context)
+        console.log(Panel((
+            f"=> query: {query}\n"
+            f"=> response: {response}\n"
+            f"=> context: {context}\n"
+        ), style="dim"))
 
         return response

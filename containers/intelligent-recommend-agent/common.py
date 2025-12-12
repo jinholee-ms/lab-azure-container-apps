@@ -73,7 +73,7 @@ class Settings(BaseSettings):
         ..., validation_alias=AliasChoices("GOOGLE_MAP_MCP_API_KEY")
     )
     OPENWEATHER_ENDPOINT: str = Field(
-        default="https://api.openweathermap.org", validation_alias=AliasChoices("OPENWEATHER_ENDPOINT"),
+        default="https://api.openweathermap.org/", validation_alias=AliasChoices("OPENWEATHER_ENDPOINT"),
     )
     OPENWEATHER_API_KEY: str = Field(
         ..., validation_alias=AliasChoices("OPENWEATHER_API_KEY")

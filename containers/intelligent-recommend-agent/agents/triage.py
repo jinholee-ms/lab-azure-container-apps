@@ -51,7 +51,7 @@ class TriageAgentGraph:
 
         compiled = graph.compile()
         console.log("🛠️ TriageAgent graph compiled successfully.")
-        console.log(compiled.get_graph().draw_ascii())
+        console.log(compiled.get_graph().draw_ascii(), style="dim")
 
         return compiled
 
