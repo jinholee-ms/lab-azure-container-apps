@@ -11,7 +11,7 @@ from langchain.prompts import PromptTemplate
 import pandas as pd
 
 from agents.base import AgentBase, TaskOperator
-from agents.schema import AgentGraphStateBase, AgentProfile
+from agents.schema import AgentGraphStateBase, AgentProfile, AgentPrompt, PromptVariable
 from capabilities.db import ReadOnlySQLDatabase
 from capabilities.graphrag import GraphRAG
 from common import console
@@ -47,6 +47,22 @@ class TravelProfileAgent(AgentBase):
             "다른 에이전트 사용할 수 있는 관련 정보 (추천 호텔, 선호 지역, 여행 패턴 등) 을 제공하는 에이전트"
         ),
         task_operator=TravelProfileOperator,
+        prompts=AgentPrompt(
+            system=[
+                PromptVariable(
+                    type="default",
+                    filename="travel_profile_system_prompt.jinja",
+                    selected=True,
+                ),
+            ],
+            user=[
+                PromptVariable(
+                    type="default",
+                    filename="travel_profile_human_prompt.jinja",
+                    selected=True,
+                ),
+            ],
+        ),
     )
 
     assets = [
@@ -73,13 +89,13 @@ class TravelProfileAgent(AgentBase):
 
     def generate_system_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
-            Path(__file__).parent / "prompts" / "travel_profile_system_prompt.jinja",
+            Path(__file__).parent / "prompts" / self.profile.prompts.get_selected_prompt("system").filename,
             template_format="jinja2",
         ).format(**kwargs)
 
     def generate_user_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
-            Path(__file__).parent / "prompts" / "travel_profile_human_prompt.jinja",
+            Path(__file__).parent / "prompts" / self.profile.prompts.get_selected_prompt("user").filename,
             template_format="jinja2",
         ).format(**kwargs)
 

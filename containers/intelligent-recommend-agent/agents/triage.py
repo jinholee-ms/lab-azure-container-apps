@@ -9,7 +9,7 @@ from langgraph.graph.state import CompiledStateGraph
 from agents.base import AgentBase, TaskOperator
 from agents.chatbot import ChatbotAgent
 from agents.travel import TravelAgent
-from agents.schema import AgentGraphStateBase, AgentProfile, TriageAgentContext, TriageAgentOutput
+from agents.schema import AgentGraphStateBase, AgentProfile, AgentPrompt, PromptVariable, TriageAgentContext, TriageAgentOutput
 from common import console
 
 
@@ -95,17 +95,33 @@ class TriageAgent(AgentBase):
         name="TriageAgent",
         description="사용자의 에이전트 요청을 분석하고, 적절한 하위 에이전트 (여행 에이전트 또는 챗봇 에이전트) 로 라우팅하는 에이전트",
         task_operator=TriageOperator,
-        chat_in_settings=False,
+        interactive=False,
+        prompts=AgentPrompt(
+            system=[
+                PromptVariable(
+                    type="default",
+                    filename="triage_system_prompt.jinja",
+                    selected=True,
+                ),
+            ],
+            user=[
+                PromptVariable(
+                    type="default",
+                    filename="triage_human_prompt.jinja",
+                    selected=True,
+                ),
+            ],
+        )
     )
 
     def generate_system_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
-            Path(__file__).parent / "prompts" / "triage_system_prompt.jinja",
+            Path(__file__).parent / "prompts" / self.profile.prompts.get_selected_prompt("system").filename,
             template_format="jinja2",
         ).format(**kwargs)
 
     def generate_user_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
-            Path(__file__).parent / "prompts" / "triage_human_prompt.jinja",
+            Path(__file__).parent / "prompts" / self.profile.prompts.get_selected_prompt("user").filename,
             template_format="jinja2",
         ).format(**kwargs)

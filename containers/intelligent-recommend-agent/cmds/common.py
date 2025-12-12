@@ -1,6 +1,7 @@
 import asyncio
 from uuid import uuid4
 
+from rich.markup import escape
 from rich.rule import Rule
 from rich.panel import Panel
 from rich.prompt import Prompt
@@ -10,6 +11,71 @@ from agents.base import agent_manager
 from agents.triage import TriageAgentGraph
 from capabilities.mcp import get_mcp_client
 from common import console, settings
+
+
+async def _execute_agent_prompts_interactive_shell(agent_class, input_cb: callable):
+    while True:
+        console.print(f"Choose a prompt: {escape('[s]')}ystem, {escape('[u]')}ser, {escape('[q]')}uit")
+        prompt = await input_cb() if asyncio.iscoroutinefunction(input_cb) else input_cb()
+        if not prompt.strip():
+            continue
+        elif prompt.lower() == "q":
+            break
+        elif prompt.lower() == "s":
+            role = "system"
+            prompts = agent_class.profile.prompts.system
+        elif prompt.lower() == "u":
+            role = "user"
+            prompts = agent_class.profile.prompts.user
+        else:
+            console.print("[red]❌ Invalid prompt type. Please try again.[/]")
+            continue
+
+        while True:
+            table = Table(title=f"Select {role} prompt (or 'q' to quit)", show_lines=False)
+            table.add_column("#", style="cyan", justify="right")
+            table.add_column("Type", style="magenta")
+            table.add_column("Filename", style="cyan")
+            table.add_column("Selected", style="green")
+            for idx, p in enumerate(prompts):
+                table.add_row(str(idx + 1), p.type, p.filename, str(p.selected))
+            console.print(table)
+
+            number = await input_cb() if asyncio.iscoroutinefunction(input_cb) else input_cb()
+            if not number.strip():
+                continue
+            elif number.lower() == "q":
+                break
+            elif not number.isdigit() or int(number) < 1 or int(number) > len(prompts):
+                console.print("[red]❌ Invalid prompt number. Please try again.[/]")
+                continue
+
+            map(lambda x: setattr(x, "selected", False), prompts)
+
+            var = prompts[int(number) - 1]
+            var.selected = True
+            console.print(f"[green]✅ {role} prompt '{var.filename}' has been selected.[/]")
+            continue
+
+async def _execute_agent_chat_interactive_shell(agent_class, input_cb: callable):
+    agent = agent_class()
+    await agent.initialize()
+    while True:
+        console.print("")
+        console.print("Type '/quit' to exit the shell.")
+
+        user_input = await input_cb() if asyncio.iscoroutinefunction(input_cb) else input_cb()
+        if not user_input.strip():
+            continue
+        elif user_input.startswith("/quit"):
+            break
+
+        with console.status(f"[blue] {agent.profile.name} is processing...[/]"):
+            response = await agent.run(
+                agent.generate_user_prompt(question=user_input),
+            )
+            answer = agent.extract_answer(response)
+        console.print(f"[yellow]🤖 Assistant> {answer}[/]")
 
 
 def _control_mcp_properties():
@@ -23,44 +89,49 @@ async def _control_agent_properties(input_cb: callable):
         table = Table(title="Select agent (or 'q' to quit)", show_lines=False)
         table.add_column("#", style="cyan", justify="right")
         table.add_column("Name", style="magenta")
-        table.add_column("Chat", style="green")
+        table.add_column("Interactive", style="green")
+        table.add_column("Activated", style="yellow")
         for idx, agent in enumerate(agent_manager.all_agents):
             table.add_row(
-                str(idx + 1), agent.profile.name, str(agent.profile.chat_in_settings)
+                str(idx + 1), agent.profile.name, str(agent.profile.interactive), str(agent.profile.activated)
             )
         console.print(table)
 
         number = await input_cb() if asyncio.iscoroutinefunction(input_cb) else input_cb()
-        if number.lower() == "q":
+        if not number.strip():
+            continue
+        elif number.lower() == "q":
             break
-
-        if not number.isdigit() or int(number) < 1 or int(number) > len(agent_manager.all_agents):
+        elif not number.isdigit() or int(number) < 1 or int(number) > len(agent_manager.all_agents):
             console.print("[red]❌ Invalid agent number. Please try again.[/]")
             continue
-        if agent := agent_manager.get_agent(int(number) - 1):
-            if not agent.profile.chat_in_settings:
-                console.print("[red]❌ This agent cannot chat in settings.[/]")
-            if agent_class := agent_manager.get_agent(int(number) - 1):
-                agent = agent_class()
-                await agent.initialize()
 
-                while True:
-                    console.print("")
-                    console.print("Type '/quit' to exit the shell.")
+        agent_class = agent_manager.get_agent(int(number) - 1)
+        console.print(f"Choose a command: {escape('[c]')}hat, {escape('[a]')}ctivate, {escape('[d]')}eactivate, {escape('[p]')}rompts, {escape('[q]')}uit")
+        cmd = await input_cb() if asyncio.iscoroutinefunction(input_cb) else input_cb()
+        if not cmd.strip():
+            continue
+        elif number.lower() == "q":
+            continue
+        elif cmd.lower() == "a":
+            agent_class.profile.activated = True
+            console.print(f"[green]✅ {agent_class.profile.name} has been activated.[/]")
+        elif cmd.lower() == "d":
+            agent_class.profile.activated = False
+            console.print(f"[green]✅ {agent_class.profile.name} has been deactivated.[/]")
+        elif cmd.lower() == "p":
+            if not agent_class.profile.prompts:
+                console.print("[red]❌ This agent does not have any prompts.[/]")
+                continue
 
-                    user_input = await input_cb() if asyncio.iscoroutinefunction(input_cb) else input_cb()
-                    if not user_input.strip():
-                        continue
-                    elif user_input.startswith("/quit"):
-                        console.print("👋 ByeBye ~")
-                        break
+            await _execute_agent_prompts_interactive_shell(agent_class, input_cb)
+            continue
+        elif cmd.lower() == "c":
+            if not agent_class.profile.interactive:
+                console.print("[red]❌ This agent cannot be interactive.[/]")
+                continue
 
-                    with console.status(f"[blue] {agent.profile.name} is processing...[/]"):
-                        response = await agent.run(
-                            agent.generate_user_prompt(question=user_input),
-                        )
-                        answer = agent.extract_answer(response)
-                    console.print(f"[yellow]🤖 Assistant> {answer}[/]")
+            await _execute_agent_chat_interactive_shell(agent_class, input_cb)
             continue
 
 

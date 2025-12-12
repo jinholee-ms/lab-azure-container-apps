@@ -3,7 +3,7 @@ from pathlib import Path
 from langchain_core.prompts import PromptTemplate
 
 from agents.base import AgentBase, TaskOperator
-from agents.schema import AgentGraphStateBase, AgentProfile
+from agents.schema import AgentGraphStateBase, AgentProfile, AgentPrompt, PromptVariable
 from capabilities.mcp import get_mcp_client
 
 
@@ -21,17 +21,33 @@ class WebSearchAgent(AgentBase):
         name="WebSearchAgent",
         description="웹 검색을 담당하는 에이전트",
         task_operator=WebSearchOperator,
+        prompts=AgentPrompt(
+            system=[
+                PromptVariable(
+                    type="default",
+                    filename="web_search_system_prompt.jinja",
+                    selected=True,
+                ),
+            ],
+            user=[
+                PromptVariable(
+                    type="default",
+                    filename="web_search_human_prompt.jinja",
+                    selected=True,
+                ),
+            ],
+        ),
     )
 
     def generate_system_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
-            Path(__file__).parent / "prompts" / "web_search_system_prompt.jinja",
+            Path(__file__).parent / "prompts" / self.profile.prompts.get_selected_prompt("system").filename,
             template_format="jinja2",
         ).format(**kwargs)
 
     def generate_user_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
-            Path(__file__).parent / "prompts" / "web_search_human_prompt.jinja",
+            Path(__file__).parent / "prompts" / self.profile.prompts.get_selected_prompt("user").filename,
             template_format="jinja2",
         ).format(**kwargs)
 

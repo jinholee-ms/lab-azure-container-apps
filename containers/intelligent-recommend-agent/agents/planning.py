@@ -79,7 +79,7 @@ class PlanningAgent(AgentBase):
             "사용자의 요청을 여러 개의 단계(step)로 분해하여, 정의된 에이전트들이 실행할 수 있는 Plan을 만드는 에이전트"
         ),
         task_operator=PlanningOperator,
-        chat_in_settings=False,
+        interactive=False,
     )
 
     def generate_system_prompt(self, **kwargs) -> str:

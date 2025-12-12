@@ -5,11 +5,32 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 
 
+class PromptVariable(BaseModel):
+    type: str = Field(description="Type of the prompt variable")
+    filename: str = Field(description="Filename of the prompt variable")
+    selected: bool = Field(default=False, description="Whether this variable is selected")
+
+
+class AgentPrompt(BaseModel):
+    system: Optional[list[PromptVariable]] = Field(description="System prompt for the agent")
+    user: Optional[list[PromptVariable]] = Field(description="User prompt for the agent")
+
+    def get_selected_prompt(self, role: str) -> PromptVariable:
+        prompts = self.system if role == "system" else self.user
+        if prompts:
+            for prompt in prompts:
+                if prompt.selected:
+                    return prompt
+        raise ValueError(f"No selected prompt found for role: {role}")
+
+
 class AgentProfile(BaseModel):
     name: str = Field(description="Name of the agent")
     description: str = Field(description="Description of the agent's purpose and capabilities")
     task_operator: Any = Field(description="Task operator class associated with the agent")
-    chat_in_settings: bool = Field(default=True, description="Whether to chat to this agent in chat settings")
+    activated: bool = Field(default=True, description="Whether the agent is activated")
+    interactive: bool = Field(default=True, description="Whether to chat to this agent in chat settings")
+    prompts: Optional[AgentPrompt] = Field(default=None, description="Data structure for prompts related to the agent")
 
 
 class PlanningStepArgument(BaseModel):

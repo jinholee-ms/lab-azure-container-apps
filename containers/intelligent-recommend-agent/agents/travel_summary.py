@@ -3,7 +3,7 @@ from pathlib import Path
 from langchain_core.prompts import PromptTemplate
 
 from agents.base import AgentBase, TaskOperator
-from agents.schema import PlannedAgentGraphState, AgentProfile
+from agents.schema import PlannedAgentGraphState, AgentProfile, AgentPrompt, PromptVariable
 
 
 class TravelSummaryOperator(TaskOperator):
@@ -25,17 +25,33 @@ class TravelSummaryAgent(AgentBase):
         name="TravelSummaryAgent",
         description="사용자의 요청에 대해 여러 에이전트가 수행한 작업 결과를 요약하는 에이전트",
         task_operator=TravelSummaryOperator,
-        chat_in_settings=False,
+        interactive=False,
+        prompts=AgentPrompt(
+            system=[
+                PromptVariable(
+                    type="default",
+                    filename="travel_summary_system_prompt.jinja",
+                    selected=True,
+                ),
+            ],
+            user=[
+                PromptVariable(
+                    type="default",
+                    filename="travel_summary_human_prompt.jinja",
+                    selected=True,
+                ),
+            ],
+        ),
     )
 
     def generate_system_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
-            Path(__file__).parent / "prompts" / "travel_summary_system_prompt.jinja",
+            Path(__file__).parent / "prompts" / self.profile.prompts.get_selected_prompt("system").filename,
             template_format="jinja2",
         ).format(**kwargs)
 
     def generate_user_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
-            Path(__file__).parent / "prompts" / "travel_summary_human_prompt.jinja",
+            Path(__file__).parent / "prompts" / self.profile.prompts.get_selected_prompt("user").filename,
             template_format="jinja2",
         ).format(**kwargs)
