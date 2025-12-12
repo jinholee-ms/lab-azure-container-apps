@@ -59,7 +59,7 @@ async def _execute_agent_prompts_interactive_shell(agent_class, input_cb: callab
 
 async def _execute_agent_chat_interactive_shell(agent_class, input_cb: callable):
     agent = agent_class()
-    await agent.initialize()
+    await agent.initialize(enable_debugging=True)
     while True:
         console.print("")
         console.print("Type '/quit' to exit the shell.")

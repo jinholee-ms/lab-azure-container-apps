@@ -30,19 +30,26 @@ agent_manager = AgentManager()
 
 class DebugCallbackHandler(BaseCallbackHandler):
     def on_llm_start(self, serialized: dict, prompts: list[str], **kwargs: Any) -> None:
-        console.rule("[bold cyan]LLM Start[/bold cyan]")
-
-        console.print("[bold yellow]Serialized Info[/bold yellow]")
+        console.log("[yellow]Serialized Info[/yellow]")
         serialized_pretty = json.dumps(serialized, indent=2, ensure_ascii=False)
-        console.print(Panel(serialized_pretty, style="dim"))
+        console.log(Panel(serialized_pretty, style="dim"))
 
-        console.print("\n[bold yellow]Prompts[/bold yellow]")
+        console.log("\n[yellow]Prompts[/yellow]")
         for idx, prompt in enumerate(prompts):
-            console.print(f"[green]Prompt #{idx}[/green]")
+            console.log(f"[green]Prompt #{idx}[/green]")
             syntax = Syntax(prompt, "markdown", theme="ansi_dark", line_numbers=False)
-            console.print(Panel(syntax, style="dim"))
+            console.log(Panel(syntax, style="dim"))
 
         console.rule("[bold cyan]End LLM Start[/bold cyan]\n")
+
+    def on_llm_end(self, response: Any, **kwargs: Any) -> None:
+        console.rule("[bold cyan]LLM End[/bold cyan]")
+
+        console.print("[bold yellow]Response[/bold yellow]")
+        response_pretty = json.dumps(response, indent=2, ensure_ascii=False)
+        console.print(Panel(response_pretty, style="dim"))
+
+        console.rule("[bold cyan]End LLM End[/bold cyan]\n")
 
 
 class AgentBaseMeta(type):
@@ -177,8 +184,10 @@ class TaskOperator:
 
     async def run_node(self, state: AgentGraphStateBase) -> str:
         with console.status(f"[blue] {self.agent.profile.name} is processing...[/]"):
+            start_time = console.timer()
             await self.exec(state)
-        console.log(f"[green] ✅ {self.agent.profile.name} is completed. [/]")
+            end_time = console.timer()
+        console.log(f"[green] ✅ ({end_time - start_time:.2f}s) {self.agent.profile.name} is completed. [/]")
         return state
 
     @abc.abstractmethod

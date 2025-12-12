@@ -4,6 +4,8 @@ from langchain_core.prompts import PromptTemplate
 
 from agents.base import AgentBase, TaskOperator
 from agents.schema import AgentGraphStateBase, AgentProfile, AgentPrompt, PromptVariable
+from capabilities.mcp import get_mcp_client
+from capabilities.tools import get_current_weather, get_forecast
 from common import settings
 
 
@@ -30,9 +32,13 @@ class TravelItinerarySuggestionAgent(AgentBase):
         prompts=AgentPrompt(
             system=[
                 PromptVariable(
-                    type="default",
-                    filename="travel_itinerary_suggestion_system_prompt.jinja",
+                    type="version_001",
+                    filename="travel_itinerary_suggestion_system_prompt_001.jinja",
                     selected=True,
+                ),
+                PromptVariable(
+                    type="version_002",
+                    filename="travel_itinerary_suggestion_system_prompt_002.jinja",
                 ),
             ],
             user=[
@@ -57,3 +63,8 @@ class TravelItinerarySuggestionAgent(AgentBase):
             Path(__file__).parent / "prompts" / self.profile.prompts.get_selected_prompt("user").filename,
             template_format="jinja2",
         ).format(**kwargs)
+
+    async def get_tools(self) -> list:
+        tools = await get_mcp_client().get_tools(server_name="naver-web")
+        tools.extend([get_current_weather, get_forecast])
+        return tools
