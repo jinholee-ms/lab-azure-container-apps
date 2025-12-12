@@ -4,6 +4,7 @@ from langchain_core.prompts import PromptTemplate
 
 from agents.base import AgentBase, TaskOperator
 from agents.schema import AgentGraphStateBase, AgentProfile, AgentPrompt, PromptVariable
+from common import settings
 
 
 class TravelItinerarySuggestionOperator(TaskOperator):
@@ -41,7 +42,8 @@ class TravelItinerarySuggestionAgent(AgentBase):
                     selected=True,
                 ),
             ],
-        )
+        ),
+        deployment_name=settings.AZURE_OPENAI_REASONING_DEPLOYMENT,
     )
 
     def generate_system_prompt(self, **kwargs) -> str:

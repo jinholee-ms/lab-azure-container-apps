@@ -75,7 +75,7 @@ class AgentBase(metaclass=AgentBaseMeta):
         if deployment_name:
             kwargs["deployment_name"] = deployment_name
         else:
-            kwargs["deployment_name"] = settings.AZURE_OPENAI_CHAT_DEPLOYMENT
+            kwargs["deployment_name"] = self.profile.deployment_name
         if response_format:
             kwargs["model_kwargs"] = {"response_format": response_format}
         if enable_debugging:

@@ -91,9 +91,14 @@ async def _control_agent_properties(input_cb: callable):
         table.add_column("Name", style="magenta")
         table.add_column("Interactive", style="green")
         table.add_column("Activated", style="yellow")
+        table.add_column("Deployment Name", style="blue")
         for idx, agent in enumerate(agent_manager.all_agents):
             table.add_row(
-                str(idx + 1), agent.profile.name, str(agent.profile.interactive), str(agent.profile.activated)
+                str(idx + 1),
+                agent.profile.name,
+                str(agent.profile.interactive),
+                str(agent.profile.activated),
+                agent.profile.deployment_name,
             )
         console.print(table)
 
@@ -107,7 +112,15 @@ async def _control_agent_properties(input_cb: callable):
             continue
 
         agent_class = agent_manager.get_agent(int(number) - 1)
-        console.print(f"Choose a command: {escape('[c]')}hat, {escape('[a]')}ctivate, {escape('[d]')}eactivate, {escape('[p]')}rompts, {escape('[q]')}uit")
+        console.print(
+            "Choose a command: "
+            "(c) chat, "
+            "(a) activate, "
+            "(d) deactivate, "
+            "(p) prompts, "
+            "(pd) property.deployment_name, "
+            "(q) quit"
+        )
         cmd = await input_cb() if asyncio.iscoroutinefunction(input_cb) else input_cb()
         if not cmd.strip():
             continue
@@ -119,6 +132,21 @@ async def _control_agent_properties(input_cb: callable):
         elif cmd.lower() == "d":
             agent_class.profile.activated = False
             console.print(f"[green]✅ {agent_class.profile.name} has been deactivated.[/]")
+        elif cmd.lower() == "pd":
+            available_deployments = settings.get_available_model_deployments()
+            prompt = "Enter deployment_name: "
+            for i in range(len(available_deployments)):
+                prompt += f"{i + 1}. {available_deployments[i]}"
+                if i != len(available_deployments) - 1:
+                    prompt += ", "
+
+            deployment_number = Prompt.ask(prompt, choices=[str(i) for i in range(1, len(available_deployments) + 1)])
+            if deployment_number.strip():
+                deployment_name = available_deployments[int(deployment_number) - 1].strip()
+                agent_class.profile.deployment_name = deployment_name
+                console.print(f"[green]✅ deployment name has been updated to '{deployment_name}'[/]")
+            else:
+                console.print("[red]❌ deployment name cannot be empty.[/]")
         elif cmd.lower() == "p":
             if not agent_class.profile.prompts:
                 console.print("[red]❌ This agent does not have any prompts.[/]")

@@ -26,8 +26,14 @@ class Settings(BaseSettings):
     AZURE_OPENAI_CHAT_DEPLOYMENT: str = Field(
         ..., validation_alias=AliasChoices("AZURE_OPENAI_CHAT_DEPLOYMENT")
     )
+    AZURE_OPENAI_CHAT_MINI_DEPLOYMENT: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_OPENAI_CHAT_MINI_DEPLOYMENT")
+    )
     AZURE_OPENAI_REASONING_DEPLOYMENT: str = Field(
         ..., validation_alias=AliasChoices("AZURE_OPENAI_REASONING_DEPLOYMENT")
+    )
+    AZURE_OPENAI_REASONING_MINI_DEPLOYMENT: str = Field(
+        ..., validation_alias=AliasChoices("AZURE_OPENAI_REASONING_MINI_DEPLOYMENT")
     )
     AZURE_OPENAI_EMBEDDING_DEPLOYMENT: str = Field(
         ..., validation_alias=AliasChoices("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
@@ -72,6 +78,14 @@ class Settings(BaseSettings):
 
     def show(self):
         console.print(self)
+
+    def get_available_model_deployments(self) -> list[str]:
+        return [
+            self.AZURE_OPENAI_CHAT_DEPLOYMENT,
+            self.AZURE_OPENAI_CHAT_MINI_DEPLOYMENT,
+            self.AZURE_OPENAI_REASONING_DEPLOYMENT,
+            self.AZURE_OPENAI_REASONING_MINI_DEPLOYMENT,
+        ]
 
 
 @lru_cache(maxsize=1)

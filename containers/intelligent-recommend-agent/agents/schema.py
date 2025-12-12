@@ -4,6 +4,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from common import settings
+
 
 class PromptVariable(BaseModel):
     type: str = Field(description="Type of the prompt variable")
@@ -31,6 +33,7 @@ class AgentProfile(BaseModel):
     activated: bool = Field(default=True, description="Whether the agent is activated")
     interactive: bool = Field(default=True, description="Whether to chat to this agent in chat settings")
     prompts: Optional[AgentPrompt] = Field(default=None, description="Data structure for prompts related to the agent")
+    deployment_name: str = Field(default=settings.AZURE_OPENAI_CHAT_DEPLOYMENT, description="Azure OpenAI deployment name for chat models")
 
 
 class PlanningStepArgument(BaseModel):
