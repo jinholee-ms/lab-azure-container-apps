@@ -71,11 +71,13 @@ async def _execute_agent_chat_interactive_shell(agent_class, input_cb: callable)
             break
 
         with console.status(f"[blue] {agent.profile.name} is processing...[/]"):
+            start_time = console.get_datetime()
             response = await agent.run(
                 agent.generate_user_prompt(question=user_input),
             )
             answer = agent.extract_answer(response)
-        console.print(f"[yellow]🤖 Assistant> {answer}[/]")
+            elapsed_time = console.get_datetime() - start_time
+        console.print(f"[yellow]🤖 Assistant({elapsed_time.total_seconds():.2f}s)> {answer}[/]")
 
 
 def _control_mcp_properties():

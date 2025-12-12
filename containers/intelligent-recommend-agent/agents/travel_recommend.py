@@ -28,8 +28,13 @@ class TravelRecommendAgent(AgentBase):
         prompts=AgentPrompt(
             system=[
                 PromptVariable(
-                    type="default",
-                    filename="travel_recommend_system_prompt.jinja",
+                    type="version_001",
+                    filename="travel_recommend_system_prompt_001.jinja",
+                    selected=True,
+                ),
+                PromptVariable(
+                    type="version_002",
+                    filename="travel_recommend_system_prompt_002.jinja",
                     selected=True,
                 ),
             ],
