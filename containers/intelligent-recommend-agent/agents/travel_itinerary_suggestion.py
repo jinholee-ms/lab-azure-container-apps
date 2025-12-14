@@ -34,11 +34,11 @@ class TravelItinerarySuggestionAgent(AgentBase):
                 PromptVariable(
                     type="version_001",
                     filename="travel_itinerary_suggestion_system_prompt_001.jinja",
-                    selected=True,
                 ),
                 PromptVariable(
                     type="version_002",
                     filename="travel_itinerary_suggestion_system_prompt_002.jinja",
+                    selected=True,
                 ),
             ],
             user=[
@@ -49,7 +49,6 @@ class TravelItinerarySuggestionAgent(AgentBase):
                 ),
             ],
         ),
-        deployment_name=settings.AZURE_OPENAI_REASONING_DEPLOYMENT,
         enable_debugging=True,
     )
 

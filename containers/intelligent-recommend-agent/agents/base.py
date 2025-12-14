@@ -46,7 +46,8 @@ class DebugCallbackHandler(BaseCallbackHandler):
         console.rule("[bold cyan]LLM End[/bold cyan]")
 
         console.print("[bold yellow]Response[/bold yellow]")
-        response_pretty = json.dumps(response, indent=2, ensure_ascii=False)
+        response_dict = response.dict() if hasattr(response, 'dict') else str(response)
+        response_pretty = json.dumps(response_dict, indent=2, ensure_ascii=False) if isinstance(response_dict, dict) else response_dict
         console.print(Panel(response_pretty, style="dim"))
 
         console.rule("[bold cyan]End LLM End[/bold cyan]\n")
@@ -183,10 +184,10 @@ class TaskOperator:
 
     async def run_node(self, state: AgentGraphStateBase) -> str:
         with console.status(f"[blue] {self.agent.profile.name} is processing...[/]"):
-            start_time = console.timer()
+            start_time = console.get_datetime()
             await self.exec(state)
-            end_time = console.timer()
-        console.log(f"[green] ✅ ({end_time - start_time:.2f}s) {self.agent.profile.name} is completed. [/]")
+            elapsed_time = console.get_datetime() - start_time
+        console.log(f"[green] ✅ ({elapsed_time.total_seconds():.2f}s) {self.agent.profile.name} is completed. [/]")
         return state
 
     @abc.abstractmethod

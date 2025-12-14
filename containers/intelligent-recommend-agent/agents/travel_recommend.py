@@ -30,7 +30,6 @@ class TravelRecommendAgent(AgentBase):
                 PromptVariable(
                     type="version_001",
                     filename="travel_recommend_system_prompt_001.jinja",
-                    selected=True,
                 ),
                 PromptVariable(
                     type="version_002",
@@ -46,7 +45,6 @@ class TravelRecommendAgent(AgentBase):
                 ),
             ],
         ),
-        deployment_name=settings.AZURE_OPENAI_REASONING_DEPLOYMENT,
         enable_debugging=True,
     )
 
