@@ -3,6 +3,10 @@ ifneq (,$(wildcard .az-release))
   export
 endif
 
+
+azure-update-env:
+	./export-env.sh ${RELEASE_RESOURCE_GROUP} ${RELEASE_CONTAINER_APP_NAME} ${RELEASE_CONTAINER_APP_NAME}
+
 uv-export-requirements:
 	uv export --format requirements-txt --no-hashes --no-editable --no-dev >> requirements.txt
 

@@ -1,15 +1,21 @@
 import argparse
 import asyncio
+from dotenv import load_dotenv
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from rich.console import Console
 
+# 로컬에서만 .env 로드 (컨테이너에서는 파일 없으므로 무시됨)
+env_file_path = Path(__file__).resolve().parent / ".env"
+if env_file_path.exists():
+    load_dotenv(env_file_path)
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
     )
