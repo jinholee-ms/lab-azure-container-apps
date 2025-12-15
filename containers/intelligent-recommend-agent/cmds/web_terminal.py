@@ -55,4 +55,6 @@ async def main():
     await init_ms_foundry_monitoring_module()
     await init_mcp_module()
     await load_agents()
-    await uvicorn.Server(config=uvicorn.Config(app)).serve()
+    await uvicorn.Server(
+        config=uvicorn.Config(app, host="0.0.0.0", port=8000),
+    ).serve()
