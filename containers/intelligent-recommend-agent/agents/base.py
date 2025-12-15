@@ -154,27 +154,32 @@ class AgentBase(metaclass=AgentBaseMeta):
             # 혹시 AIMessage가 없다면 마지막 요소를 문자열로
             return str(answer[-1])
 
-        # 2) answer가 dict 구조인 경우 (LangGraph 응답 형태)
+        # 2) answer가 dict 구조인 경우 (LangGraph / RunnableWithMessageHistory 응답 형태)
         if isinstance(answer, dict):
-            # history 안에 AIMessage가 있는 경우
+            # ✅ (1) 우선 현재 호출의 직접 결과부터 본다
+            for key in ("response", "output", "final_answer", "answer", "text", "result"):
+                if key in answer and answer[key] is not None:
+                    return str(answer[key])
+
+            # ✅ (2) 그래도 없으면 history 안에서 마지막 AIMessage를 찾는다
             if "history" in answer and isinstance(answer["history"], list):
                 ai_messages = [m for m in answer["history"] if isinstance(m, AIMessage)]
                 if ai_messages:
                     return ai_messages[-1].content
-            # "response" 키가 JSON 문자열일 수 있음
-            if "response" in answer:
-                return answer["response"]
-            # 그 외 일반 dict 처리
-            for key in ("output", "final_answer", "answer", "text", "result"):
-                if key in answer:
-                    return str(answer[key])
 
+        # 3) AgentFinish 객체
         if isinstance(answer, AgentFinish):
             return str(answer.return_values.get("output", ""))
-        elif isinstance(answer, AIMessage):
+
+        # 4) AIMessage
+        if isinstance(answer, AIMessage):
             return answer.content
-        elif isinstance(answer, str):
+
+        # 5) 이미 문자열인 경우
+        if isinstance(answer, str):
             return answer
+
+        # 6) 마지막 fallback
         return str(answer)
 
 

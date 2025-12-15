@@ -1,6 +1,7 @@
 import atexit
 from datetime import timedelta
 import httpx
+import platform
 import subprocess
 import time
 
@@ -29,12 +30,15 @@ _mcp_cmds: list[dict] = {
 
 def start_mcp_servers(wait_timeout: int = 10) -> None:
     for name, props in _mcp_cmds.items():
-        process = subprocess.Popen(
-            props["cmd"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
+        kwargs = {
+            "stdout": subprocess.PIPE,
+            "stderr": subprocess.PIPE,
+            "text": True,
+        }
+        if platform.system() == "Windows":
+            kwargs["shell"] = True
+        process = subprocess.Popen(props["cmd"], **kwargs)
+
         console.print(f"🔺 Started MCP server '{name}' with PID {process.pid}.")
 
         # Wait for the server to be ready

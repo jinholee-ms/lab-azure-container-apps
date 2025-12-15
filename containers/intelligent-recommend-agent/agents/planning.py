@@ -86,10 +86,12 @@ class PlanningAgent(AgentBase):
         return PromptTemplate.from_file(
             Path(__file__).parent / "prompts" / "planning_system_prompt.jinja",
             template_format="jinja2",
+            encoding="utf-8",
         ).format(**kwargs)
 
     def generate_user_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
             Path(__file__).parent / "prompts" / "planning_human_prompt.jinja",
             template_format="jinja2",
+            encoding="utf-8",
         ).format(**kwargs)

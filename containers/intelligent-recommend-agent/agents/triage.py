@@ -118,10 +118,12 @@ class TriageAgent(AgentBase):
         return PromptTemplate.from_file(
             Path(__file__).parent / "prompts" / self.profile.prompts.get_selected_prompt("system").filename,
             template_format="jinja2",
+            encoding="utf-8",
         ).format(**kwargs)
 
     def generate_user_prompt(self, **kwargs) -> str:
         return PromptTemplate.from_file(
             Path(__file__).parent / "prompts" / self.profile.prompts.get_selected_prompt("user").filename,
             template_format="jinja2",
+            encoding="utf-8",
         ).format(**kwargs)
