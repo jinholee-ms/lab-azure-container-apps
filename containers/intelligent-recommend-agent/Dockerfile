@@ -2,8 +2,14 @@ FROM python:3.12-slim
 
 ENV PATH="/root/.local/bin:$PATH"
 
-# RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
-# RUN curl -Ls https://astral.sh/uv/install.sh | sh
+# ─────────────────────────────────────────────────────────────
+# Node.js (npm, npx) 설치 – MCP용 npx 실행에 필요
+# ─────────────────────────────────────────────────────────────
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl ca-certificates gnupg && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8000
 
