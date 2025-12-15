@@ -104,6 +104,8 @@ class TravelProfileAgent(AgentBase):
 
     @classmethod
     async def load_agent(cls) -> None:
+        ...
+        '''
         # Check if any asset files are missing
         if any(not os.path.exists(filename) for filename, _ in cls.assets):
             console.print("⏱️ Asset files are missing. Running gen_travel_db_kr.py...")
@@ -140,3 +142,4 @@ class TravelProfileAgent(AgentBase):
 
         await cls.graphrag.build(documents=documents)
         console.print("✅ TravelProfileAgent Graphrag loaded successfully.")
+        '''
