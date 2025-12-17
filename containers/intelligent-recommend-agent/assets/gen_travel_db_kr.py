@@ -38,7 +38,7 @@ def random_date(start: datetime, end: datetime) -> datetime:
 
 def init_google_maps_client() -> googlemaps.Client:
     load_dotenv()
-    api_key = os.getenv("GOOGLE_MAPS_API_KEY", "AIzaSyC7D2Y_3NbtJxQ8K27NzMe5LthTfiqZrjc")
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
     if not api_key:
         raise RuntimeError("GOOGLE_MAPS_API_KEY 환경변수를 설정하거나 .env 에 넣어주세요.")
     return googlemaps.Client(key=api_key)
