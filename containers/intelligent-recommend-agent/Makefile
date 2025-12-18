@@ -11,7 +11,7 @@ download-assets:
 	${CLI} ./scripts/load_assets_with_azure_storage_account.py download \
 	--container-name="intelligent-recommend-agent" \
 	--source="assets" \
-	--destination="assets1" \
+	--destination="assets" \
 	--overwrite
 
 azure-update-env:
