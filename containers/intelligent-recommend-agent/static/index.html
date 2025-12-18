@@ -17,12 +17,13 @@
         height: 100%;
         width: 100%;
         background: #000;
+        overflow: hidden;          /* 바깥 스크롤 제거 */
       }
 
-      /* 화면 전체를 터미널용 컨테이너로 */
       #terminal-container {
-        height: 100vh;
-        width: 100vw;
+        height: 100%;
+        width: 100%;
+        box-sizing: border-box;    /* padding 포함 */
       }
 
       #terminal {
@@ -41,24 +42,24 @@
       const term = new Terminal({
         cursorBlink: true,
         fontSize: 14,
-        theme: { background: '#000000', foreground: '#ffffff' }
+        scrollback: 5000,
+        theme: { background: "#000000", foreground: "#ffffff" },
       });
 
-      // fit addon 로드
+      // fit addon
       const fitAddon = new FitAddon.FitAddon();
       term.loadAddon(fitAddon);
 
-      term.open(document.getElementById('terminal'));
-      fitAddon.fit();        // 처음에 한 번 맞춰주기
+      term.open(document.getElementById("terminal"));
+      fitAddon.fit();
       term.focus();
-      term.write("🔗 Connecting to agent...\r\n");
 
-      // 창 크기 바뀔 때도 터미널 리사이즈
       window.addEventListener("resize", () => {
         fitAddon.fit();
+        sendResize();
       });
 
-      // === WebSocket URL 설정 ===
+      // === WebSocket URL ===
       let wsUrl;
       if (location.protocol === "https:") {
         wsUrl = "wss://" + location.host + "/ws";
@@ -70,53 +71,156 @@
 
       const socket = new WebSocket(wsUrl);
 
-      socket.onopen = () => {
-        term.write("✔️ Connected!\r\n");
+      // === input state ===
+      let awaitingInput = false;
+      let inputBuffer = "";
+      let promptText = "😊 User > ";
+
+      function clearCurrentLine() {
+        // 커서를 줄 맨 앞으로 보내고, 해당 줄 전체 지움
+        term.write("\r\x1b[2K");
+      }
+
+      function redrawInputLine() {
+        clearCurrentLine();
+        term.write(promptText || "😊 User > ");
+        if (inputBuffer) term.write(inputBuffer);
+      }
+
+      function writeStdout(text) {
+        term.write(String(text).replace(/\n/g, "\r\n"));
+      }
+
+      function showPrompt(text) {
+        promptText = text ?? promptText;
+        term.write(promptText);
+        awaitingInput = true;
+        inputBuffer = "";
+      }
+
+      function endInputLine() {
         term.write("\r\n");
+        awaitingInput = false;
+        inputBuffer = "";
+      }
+
+      // Optional: simple controls for future extension
+      function handleControl(msg) {
+        const action = msg.action;
+        if (action === "clear") {
+          term.clear();
+          return;
+        }
+        if (action === "newline") {
+          term.write("\r\n");
+          return;
+        }
+        if (action === "set_title" && msg.title) {
+          document.title = msg.title;
+          return;
+        }
+      }
+
+      function sendResize() {
+        if (socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify({
+          type: "resize",
+          cols: term.cols,
+          rows: term.rows,
+        }));
+      }
+
+      term.write("🔗 Connecting to agent...\r\n");
+
+      socket.onopen = () => {
+        writeStdout("✔️ Connected!\n\n");
+        sendResize();
       };
 
       socket.onmessage = (ev) => {
-        term.write(ev.data.replace(/\n/g, "\r\n"));
+        // 1) JSON 이벤트 처리
+        try {
+          const msg = JSON.parse(ev.data);
+
+          switch (msg.type) {
+            case "stdout": {
+              const out = String(msg.data ?? "").replace(/\n/g, "\r\n");
+
+              if (awaitingInput) {
+                // ✅ 입력줄 보호: stdout 출력 전에 입력줄 지우고,
+                // stdout 출력 후 입력줄(프롬프트+버퍼) 복원
+                clearCurrentLine();
+                term.write(out);
+
+                // stdout이 개행 없이 끝날 수도 있으니, 줄바꿈 보장
+                if (!out.endsWith("\r\n")) term.write("\r\n");
+
+                redrawInputLine();
+              } else {
+                term.write(out);
+              }
+              return;
+            }
+
+            case "stderr":
+              // stderr도 일단 stdout처럼 출력 (원하면 색 입히는 제어 시퀀스도 가능)
+              writeStdout(msg.data ?? "");
+              return;
+
+            case "prompt":
+              // prompt는 input() 호출 시점에만 오도록 백엔드가 보냄
+              showPrompt(msg.text ?? "😊 User > ");
+              return;
+
+            case "control":
+              handleControl(msg);
+              return;
+
+            default:
+              // 모르는 타입은 안전하게 출력
+              writeStdout(ev.data);
+              return;
+          }
+        } catch {
+          // 2) 하위호환: 기존처럼 plain text가 오면 그대로 출력
+          writeStdout(ev.data);
+        }
       };
 
       socket.onerror = (err) => {
-        term.write("\r\n❌ WebSocket error\r\n");
+        writeStdout("\n❌ WebSocket error\n\n");
         console.error("WS error", err);
-        term.write("\r\n");
       };
 
       socket.onclose = () => {
-        term.write("\r\n🔌 Disconnected\r\n");
-        term.write("\r\n");
+        writeStdout("\n🔌 Disconnected\n\n");
+        awaitingInput = false;
       };
 
-      // 엔터 칠 때 한 줄씩 전송
-      let inputBuffer = "";
+      // === 키 입력 처리: prompt가 온 뒤에만 입력 허용 ===
+      term.onData((data) => {
+        if (socket.readyState !== WebSocket.OPEN) return;
+        if (!awaitingInput) return;
 
-      term.onData(data => {
-        if (socket.readyState !== WebSocket.OPEN) {
+        if (data === "\r") { // Enter
+          // 백엔드는 ws.receive_text()로 받는다고 가정 -> 문자열만 보냄
+          socket.send(inputBuffer);
+          endInputLine();
           return;
         }
 
-        switch (data) {
-          case "\r": // Enter
-            const line = inputBuffer;
-            socket.send(line);
-            term.write("\r\n");
-            inputBuffer = "";
-            break;
+        if (data === "\u007f") { // Backspace
+          if (inputBuffer.length > 0) {
+            inputBuffer = inputBuffer.slice(0, -1);
+            term.write("\b \b");
+          }
+          return;
+        }
 
-          case "\u007f": // Backspace
-            if (inputBuffer.length > 0) {
-              inputBuffer = inputBuffer.slice(0, -1);
-              term.write("\b \b");
-            }
-            break;
-
-          default:
-            inputBuffer += data;
-            term.write(data);
-            break;
+        // printable chars only (화살표 등 제어문자 최소 무시)
+        if (data >= " " && data !== "\x7f") {
+          inputBuffer += data;
+          term.write(data);
         }
       });
     </script>
