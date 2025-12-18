@@ -1,3 +1,4 @@
+from pathlib import Path
 import random
 import string
 from datetime import datetime, timedelta
@@ -6,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 # =========================
-# 1. 파라미터 (규모 조절)
+# 1. Parameters (scale)
 # =========================
 N_USERS = 100_000  # 유저 수
 N_PRODUCTS = 50_000  # 상품 수
@@ -17,7 +18,7 @@ random.seed(42)
 np.random.seed(42)
 
 # =========================
-# 2. 유틸 함수
+# 2. Util functions
 # =========================
 
 
@@ -34,30 +35,54 @@ def random_session_id():
 
 
 # =========================
-# 3. users 생성
+# 3. users generation
 # =========================
 
-regions_ko = [
-    "서울",
-    "경기",
-    "인천",
-    "부산",
-    "대구",
-    "광주",
-    "대전",
-    "울산",
-    "강원",
-    "충북",
-    "충남",
-    "전북",
-    "전남",
-    "경북",
-    "경남",
-    "제주",
+states = [
+    "CA",
+    "TX",
+    "FL",
+    "NY",
+    "PA",
+    "IL",
+    "OH",
+    "GA",
+    "NC",
+    "MI",
+    "AZ",
+    "NJ",
+    "VA",
+    "WA",
+    "TN",
+    "IN",
+    "MO",
+    "MD",
+    "WI",
+    "MN",
+    "CO",
+    "AL",
+    "SC",
+    "KY",
+    "OR",
+    "OK",
+    "CT",
+    "UT",
+    "IA",
+    "NV",
 ]
-device_types = ["mobile", "pc", "tablet", "tv", "wearable"]
+
+device_types = ["mobile", "desktop", "tablet", "tv", "wearable"]
 membership_levels = ["free", "bronze", "silver", "gold", "vip"]
-categories_ko = ["게임", "쇼핑", "여행", "영상", "음악", "도서", "교육", "금융"]
+categories = [
+    "gaming",
+    "shopping",
+    "travel",
+    "video",
+    "music",
+    "books",
+    "education",
+    "finance",
+]
 
 signup_start = datetime(2020, 1, 1)
 signup_end = datetime(2025, 11, 1)
@@ -66,178 +91,180 @@ user_ids = np.arange(1, N_USERS + 1)
 
 from faker import Faker
 
-fake = Faker("ko_KR")  # 한국식 이름/주소 생성
+fake = Faker("en_US")  # 미국식 이름/주소 생성
 
 users = pd.DataFrame(
     {
         "user_id": user_ids,
-        "name": [fake.name() for _ in range(N_USERS)],  # 랜덤 한국식 이름
-        "address": [fake.address() for _ in range(N_USERS)],  # 랜덤 한국식 주소
+        "name": [fake.name() for _ in range(N_USERS)],  # 랜덤 미국식 이름
+        "address": [fake.address() for _ in range(N_USERS)],  # 랜덤 미국식 주소
         "phone_number": [
             fake.phone_number() for _ in range(N_USERS)
-        ],  # 랜덤 한국식 전화번호
+        ],  # 랜덤 미국식 전화번호
         "email": [fake.email() for _ in range(N_USERS)],  # 랜덤 이메일
         "signup_date": [
             random_date(signup_start, signup_end).date() for _ in range(N_USERS)
         ],
         "gender": np.random.choice(["M", "F", "U"], size=N_USERS, p=[0.48, 0.48, 0.04]),
-        "age": np.random.randint(15, 65, size=N_USERS),
-        "region_ko": np.random.choice(regions_ko, size=N_USERS),
+        "age": np.random.randint(18, 70, size=N_USERS),
+        "state": np.random.choice(states, size=N_USERS),
         "device_type": np.random.choice(
             device_types, size=N_USERS, p=[0.6, 0.20, 0.1, 0.075, 0.025]
-        )
+        ),
+        "membership_level": np.random.choice(membership_levels, size=N_USERS),
+        "preferred_category": np.random.choice(categories, size=N_USERS),
     }
 )
 
-print("users 생성 완료:", users.shape)
+print("users generated:", users.shape)
 
 # =========================
-# 4. products 생성
+# 4. products generation
 # =========================
 
 category_mid_map = {
-    "게임": [
+    "gaming": [
         "RPG",
-        "캐주얼",
-        "슈팅",
-        "퍼즐",
-        "스포츠",
-        "전략",
-        "어드벤처",
-        "레이싱",
-        "시뮬레이션",
+        "casual",
+        "shooter",
+        "puzzle",
+        "sports",
+        "strategy",
+        "adventure",
+        "racing",
+        "simulation",
     ],
-    "쇼핑": [
-        "패션",
-        "전자제품",
-        "식품",
-        "생활용품",
-        "뷰티",
-        "유아동",
-        "스포츠용품",
-        "가구",
-        "취미",
-        "반려동물",
-        "자동차",
-        "건강",
+    "shopping": [
+        "fashion",
+        "electronics",
+        "food",
+        "home",
+        "beauty",
+        "baby",
+        "sports_goods",
+        "furniture",
+        "hobby",
+        "pet",
+        "automotive",
+        "health",
     ],
-    "여행": [
-        "항공",
-        "호텔",
-        "렌터카",
-        "투어",
-        "크루즈",
-        "액티비티",
-        "캠핑",
-        "국내",
-        "해외",
-        "휴양지",
-        "도시",
-        "배낭",
+    "travel": [
+        "flight",
+        "hotel",
+        "rental_car",
+        "tour",
+        "cruise",
+        "activity",
+        "camping",
+        "domestic",
+        "overseas",
+        "resort",
+        "city",
+        "backpacking",
     ],
-    "영상": [
-        "영화",
-        "드라마",
-        "예능",
-        "애니메이션",
-        "다큐멘터리",
-        "웹툰",
-        "뮤직비디오",
-        "스포츠중계",
-        "뉴스",
-        "교육",
+    "video": [
+        "movie",
+        "drama",
+        "variety",
+        "animation",
+        "documentary",
+        "webtoon",
+        "music_video",
+        "sports_streaming",
+        "news",
+        "education",
     ],
-    "음악": [
-        "K-POP",
-        "발라드",
-        "힙합",
-        "재즈",
-        "클래식",
-        "록",
-        "팝",
-        "EDM",
-        "OST",
-        "인디",
-        "트로트",
+    "music": [
+        "kpop",
+        "ballad",
+        "hiphop",
+        "jazz",
+        "classical",
+        "rock",
+        "pop",
+        "edm",
+        "ost",
+        "indie",
+        "trot",
     ],
-    "도서": [
-        "소설",
-        "에세이",
-        "경제경영",
-        "IT",
-        "자기계발",
-        "인문",
-        "과학",
-        "예술",
-        "어린이",
-        "만화",
+    "books": [
+        "novel",
+        "essay",
+        "business",
+        "it",
+        "self_help",
+        "humanities",
+        "science",
+        "art",
+        "children",
+        "comic",
     ],
-    "교육": [
-        "어학",
-        "코딩",
-        "자격증",
-        "취미",
-        "유아교육",
-        "대학강의",
-        "직무교육",
-        "온라인강의",
-        "스터디",
-        "멘토링",
+    "education": [
+        "language",
+        "coding",
+        "certificate",
+        "hobby",
+        "early_education",
+        "university_course",
+        "job_training",
+        "online_course",
+        "study_group",
+        "mentoring",
     ],
-    "금융": [
-        "카드",
-        "보험",
-        "대출",
-        "투자",
-        "연금",
-        "외환",
-        "부동산",
-        "재테크",
-        "세금",
-        "회계",
+    "finance": [
+        "card",
+        "insurance",
+        "loan",
+        "investment",
+        "pension",
+        "fx",
+        "real_estate",
+        "asset_management",
+        "tax",
+        "accounting",
     ],
 }
 
 publisher_names = [
-    "알파게임즈",
-    "베타엔터테인먼트",
-    "코리아쇼핑",
-    "한강트래블",
-    "스튜디오서울",
-    "뮤직팩토리",
-    "하나북스",
-    "미래교육연구소",
-    "코리아파이낸스",
-    "디지털월드",
-    "글로벌미디어",
-    "스마트러닝",
-    "트렌드캐피털",
-    "넥스트젠",
-    "에듀테크",
-    "프리미엄콘텐츠",
-    "올댓뮤직",
-    "북앤스토리",
-    "여행플래너",
-    "디지털라이프",
+    "Alpha Games",
+    "Beta Entertainment",
+    "Korea Shopping",
+    "Hangang Travel",
+    "Studio Seoul",
+    "Music Factory",
+    "Hana Books",
+    "Future Education Lab",
+    "Korea Finance",
+    "Digital World",
+    "Global Media",
+    "Smart Learning",
+    "Trend Capital",
+    "NextGen",
+    "EduTech",
+    "Premium Contents",
+    "All That Music",
+    "Book & Story",
+    "Travel Planner",
+    "Digital Life",
 ]
 
 product_ids = np.arange(1, N_PRODUCTS + 1)
-product_large = np.random.choice(categories_ko, size=N_PRODUCTS)
+product_large = np.random.choice(categories, size=N_PRODUCTS)
 
 product_mid = [np.random.choice(category_mid_map[cat]) for cat in product_large]
 
 
 def make_product_name(cat_large, cat_mid, idx):
     base = {
-        "게임": "레전드",
-        "쇼핑": "스페셜딜",
-        "여행": "패키지",
-        "영상": "프리미엄",
-        "음악": "베스트",
-        "도서": "스마트",
-        "교육": "인강",
-        "금융": "플러스",
-    }.get(cat_large, "스페셜")
+        "gaming": "Legend",
+        "shopping": "Special Deal",
+        "travel": "Package",
+        "video": "Premium",
+        "music": "Best",
+        "books": "Smart",
+        "education": "Online Course",
+        "finance": "Plus",
+    }.get(cat_large, "Special")
     return f"{base} {cat_mid} {idx}"
 
 
@@ -247,24 +274,32 @@ release_end = datetime(2025, 11, 1)
 products = pd.DataFrame(
     {
         "product_id": product_ids,
-        "product_name_ko": [
+        "product_name": [
             make_product_name(cat_l, cat_m, i)
             for i, (cat_l, cat_m) in enumerate(zip(product_large, product_mid), start=1)
         ],
-        "category_large_ko": product_large,
-        "category_mid_ko": product_mid,
+        "category_large": product_large,
+        "category_mid": product_mid,
         "price": np.round(
             np.random.lognormal(mean=3.5, sigma=0.6, size=N_PRODUCTS) * 10, 0
         ),
-        "publisher_name_ko": np.random.choice(publisher_names, size=N_PRODUCTS),
+        "publisher_name": np.random.choice(publisher_names, size=N_PRODUCTS),
         "release_date": [
             random_date(release_start, release_end).date() for _ in range(N_PRODUCTS)
         ],
         "is_active": np.random.choice([True, False], size=N_PRODUCTS, p=[0.85, 0.15]),
-        "tags_ko": [
+        "tags": [
             ",".join(
                 np.random.choice(
-                    ["인기", "신규", "할인", "이벤트", "한정판", "추천", "프리미엄"],
+                    [
+                        "popular",
+                        "new",
+                        "discount",
+                        "event",
+                        "limited",
+                        "recommended",
+                        "premium",
+                    ],
                     size=np.random.randint(1, 4),
                     replace=False,
                 )
@@ -274,10 +309,10 @@ products = pd.DataFrame(
     }
 )
 
-print("products 생성 완료:", products.shape)
+print("products generated:", products.shape)
 
 # =========================
-# 5. campaigns 생성
+# 5. campaigns generation
 # =========================
 
 objectives = ["install", "reengage", "purchase", "awareness"]
@@ -285,7 +320,7 @@ campaign_ids = np.arange(1, N_CAMPAIGNS + 1)
 
 
 def make_campaign_name(idx):
-    return f"{idx}차 {np.random.choice(['신규', '복귀', '재구매'])} 유저 타겟 캠페인"
+    return f"Campaign {idx} - {np.random.choice(['new users', 'returning users', 'repeat purchase'])}"
 
 
 campaign_start_base = datetime(2022, 1, 1)
@@ -302,26 +337,26 @@ for cid in campaign_ids:
     campaigns_data.append(
         {
             "campaign_id": cid,
-            "campaign_name_ko": make_campaign_name(cid),
+            "campaign_name": make_campaign_name(cid),
             "objective": random.choice(objectives),
             "start_date": start.date(),
             "end_date": end.date(),
             "target_gender": random.choice(["M", "F", "ALL"]),
             "target_age_min": age_min,
             "target_age_max": age_max,
-            "target_region_ko": random.choice(
-                ["전체", "서울", "수도권", "영남", "호남", "충청"]
+            "target_state": random.choice(
+                ["all", "West", "Midwest", "South", "Northeast"] + states
             ),
-            "target_category_ko": random.choice(categories_ko),
+            "target_category": random.choice(categories),
             "budget": float(np.round(np.random.uniform(5_000_000, 200_000_000), -4)),
         }
     )
 
 campaigns = pd.DataFrame(campaigns_data)
-print("campaigns 생성 완료:", campaigns.shape)
+print("campaigns generated:", campaigns.shape)
 
 # =========================
-# 6. events 생성 (대규모)
+# 6. events generation (large scale)
 # =========================
 
 event_types = ["impression", "click", "install", "open", "purchase", "like"]
@@ -331,16 +366,16 @@ traffic_sources = ["organic", "push", "search", "ad", "banner"]
 event_start = datetime(2023, 1, 1)
 event_end = datetime(2025, 11, 1)
 
-# user, product, campaign를 랜덤 샘플링
+# user, product, campaign sampling
 user_sample = np.random.choice(user_ids, size=N_EVENTS)
 product_sample = np.random.choice(product_ids, size=N_EVENTS)
 
-# 캠페인은 일부만 매핑 (예: 40% 정도)
+# 일부만 캠페인 매핑 (예: 40% 정도)
 campaign_sample = np.random.choice(
     np.append(campaign_ids, [np.nan] * int(N_CAMPAIGNS * 1.5)), size=N_EVENTS
 )
 
-# 이벤트 타입 비율 (임의 설정)
+# 이벤트 타입 비율
 event_type_sample = np.random.choice(
     event_types,
     size=N_EVENTS,
@@ -411,19 +446,21 @@ events = pd.DataFrame(
     }
 )
 
-print("events 생성 완료:", events.shape)
+print("events generated:", events.shape)
 
 # =========================
-# 7. CSV 저장
+# 7. Save to CSV
 # =========================
+assets_path = Path() / "assets"
+assets_path.mkdir(parents=True, exist_ok=True)
 
-users.to_csv("users-kr.csv", index=False)
-products.to_csv("products-kr.csv", index=False)
-campaigns.to_csv("campaigns-kr.csv", index=False)
-events.to_csv("events-kr.csv", index=False)
+users.to_csv(assets_path / "users-us.csv", index=False)
+products.to_csv(assets_path / "products-us.csv", index=False)
+campaigns.to_csv(assets_path / "campaigns-us.csv", index=False)
+events.to_csv(assets_path / "events-us.csv", index=False)
 
-print("CSV 파일 저장 완료:")
-print("  users-kr.csv")
-print("  products-kr.csv")
-print("  campaigns-kr.csv")
-print("  events-kr.csv")
+print("CSV files saved:")
+print("  users-us.csv")
+print("  products-us.csv")
+print("  campaigns-us.csv")
+print("  events-us.csv")

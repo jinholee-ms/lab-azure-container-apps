@@ -1,3 +1,4 @@
+from pathlib import Path
 import random
 import string
 from datetime import datetime, timedelta
@@ -425,11 +426,13 @@ print("events (FR) generated:", events.shape)
 # =========================
 # 7. Save to CSV
 # =========================
+assets_path = Path() / "assets"
+assets_path.mkdir(parents=True, exist_ok=True)
 
-users.to_csv("users-fr.csv", index=False)
-products.to_csv("products-fr.csv", index=False)
-campaigns.to_csv("campaigns-fr.csv", index=False)
-events.to_csv("events-fr.csv", index=False)
+users.to_csv(assets_path / "users-fr.csv", index=False)
+products.to_csv(assets_path / "products-fr.csv", index=False)
+campaigns.to_csv(assets_path / "campaigns-fr.csv", index=False)
+events.to_csv(assets_path / "events-fr.csv", index=False)
 
 print("CSV files saved:")
 print("  users-fr.csv")

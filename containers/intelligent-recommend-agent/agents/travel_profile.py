@@ -71,7 +71,7 @@ class TravelProfileAgent(AgentBase):
         ("./assets/user_hotel_activity.csv", "User-Hotel-Activities"),
         ("./assets/users.csv", "Users"),
     ]
-    graphrag: GraphRAG = GraphRAG(path=Path(__file__).parent / "travel_profile", force=True, auto_delete=False)
+    graphrag: GraphRAG = GraphRAG(path=Path() / "assets" / "graphrag_travel_profile", force=True, auto_delete=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -105,41 +105,3 @@ class TravelProfileAgent(AgentBase):
     @classmethod
     async def load_agent(cls) -> None:
         ...
-        '''
-        # Check if any asset files are missing
-        if any(not os.path.exists(filename) for filename, _ in cls.assets):
-            console.print("⏱️ Asset files are missing. Running gen_travel_db_kr.py...")
-            result = subprocess.run(
-                ["python", "gen_travel_db_kr.py"], cwd="./assets",check=True, capture_output=True, text=True,
-            )
-            if result.stderr:
-                console.print(f"❌ {result.stderr}")
-            else:
-                console.print("✅ Asset files generated successfully.")
-
-        # Load documents for GraphRAG
-        graphrag_input_dir = "./assets/graphrag_input"
-        if not os.path.isdir(graphrag_input_dir) or not os.listdir(graphrag_input_dir):
-            console.print("⏱️ GraphRAG input files are missing. Running gen_travel_graphrag_input.py...")
-            result = subprocess.run(
-                ["python", "gen_travel_graphrag_input.py"], cwd="./assets",check=True, capture_output=True, text=True,
-            )
-            if result.stderr:
-                console.print(f"❌ {result.stderr}")
-            else:
-                console.print("✅ GraphRAG input files generated successfully.")
-
-        # Read all .txt files from graphrag_input directory
-        documents = []
-        for txt_file in Path(graphrag_input_dir).glob("*.txt"):
-            with open(txt_file, "r", encoding="utf-8") as f:
-                raw = f.read()
-                first_line = raw.splitlines()[0].lstrip("# ").strip()
-
-                documents.append({"title": first_line, "text": raw, "id": txt_file.name, "creation_date": datetime.now().isoformat()})
-        # Convert to DataFrame
-        documents = pd.DataFrame(documents)
-
-        await cls.graphrag.build(documents=documents)
-        console.print("✅ TravelProfileAgent Graphrag loaded successfully.")
-        '''

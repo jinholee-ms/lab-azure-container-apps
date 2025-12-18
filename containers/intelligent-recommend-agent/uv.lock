@@ -1373,6 +1373,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "azure-ai-projects" },
+    { name = "azure-storage-blob" },
     { name = "faker" },
     { name = "fastapi" },
     { name = "googlemaps" },
@@ -1393,6 +1394,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "azure-ai-projects", specifier = ">=1.0.0" },
+    { name = "azure-storage-blob", specifier = ">=12.27.1" },
     { name = "faker", specifier = ">=38.2.0" },
     { name = "fastapi", specifier = ">=0.123.4" },
     { name = "googlemaps", specifier = ">=4.10.0" },

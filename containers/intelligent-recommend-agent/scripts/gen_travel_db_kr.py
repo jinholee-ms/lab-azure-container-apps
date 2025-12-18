@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import time
 import random
 from datetime import datetime, timedelta
@@ -38,9 +39,9 @@ def random_date(start: datetime, end: datetime) -> datetime:
 
 def init_google_maps_client() -> googlemaps.Client:
     load_dotenv()
-    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    api_key = os.getenv("GOOGLE_MAP_MCP_API_KEY")
     if not api_key:
-        raise RuntimeError("GOOGLE_MAPS_API_KEY 환경변수를 설정하거나 .env 에 넣어주세요.")
+        raise RuntimeError("GOOGLE_MAP_MCP_API_KEY 환경변수를 설정하거나 .env 에 넣어주세요.")
     return googlemaps.Client(key=api_key)
 
 
@@ -293,10 +294,13 @@ def generate_user_hotel_activity(
 # ============================================================
 
 def main():
+    assets_path = Path() / "assets"
+    assets_path.mkdir(parents=True, exist_ok=True)
+
     # 1) 사용자 생성
     print("✅ Generating users...")
     users = generate_users(N_USERS)
-    users_path = "users.csv"
+    users_path = assets_path / "users.csv"
     users.to_csv(users_path, index=False, encoding="utf-8-sig")
     print(f" -> {users_path} 생성 (rows={len(users)})")
 
@@ -310,14 +314,14 @@ def main():
         target_cities=TARGET_CITIES,
         max_per_city=N_HOTELS_PER_CITY,
     )
-    hotels_path = "hotels.csv"
+    hotels_path = assets_path / "hotels.csv"
     hotels.to_csv(hotels_path, index=False, encoding="utf-8-sig")
     print(f" -> {hotels_path} 생성 (rows={len(hotels)})")
 
     # 3) user-hotel activity 생성
     print("✅ Generating user-hotel activity events...")
     activities = generate_user_hotel_activity(users, hotels, N_ACTIVITIES)
-    activities_path = "user_hotel_activity.csv"
+    activities_path = assets_path / "user_hotel_activity.csv"
     activities.to_csv(activities_path, index=False, encoding="utf-8-sig")
     print(f" -> {activities_path} 생성 (rows={len(activities)})")
 

@@ -30,16 +30,16 @@ import pandas as pd
 # =========================
 
 # 이 스크립트 파일 기준
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path()
 
 # CSV들은 generator 스크립트와 같은 위치라고 가정
-USERS_CSV = BASE_DIR / "users.csv"
-HOTELS_CSV = BASE_DIR / "hotels.csv"
-ACTIVITY_CSV = BASE_DIR / "user_hotel_activity.csv"
+USERS_CSV = BASE_DIR / "assets" / "users.csv"
+HOTELS_CSV = BASE_DIR / "assets" / "hotels.csv"
+ACTIVITY_CSV = BASE_DIR / "assets" / "user_hotel_activity.csv"
 
 # 🔧 여기를 실제 GraphRAG 프로젝트의 input 폴더로 맞춰주면 됨
 # 예: BASE_DIR / "graphrag_project" / "input"
-GRAPHRAG_INPUT_DIR = BASE_DIR / "graphrag_input"
+GRAPHRAG_INPUT_DIR = BASE_DIR / "assets" / "graphrag_travel_profile" / "input"
 GRAPHRAG_INPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 

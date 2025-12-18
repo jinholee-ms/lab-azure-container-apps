@@ -126,7 +126,7 @@ async def init_ms_foundry_monitoring_module():
 
 def init_console() -> Console:
     parser = argparse.ArgumentParser()
-    parser.add_argument("cmd")
+    parser.add_argument("cmd", nargs="?", default="terminal")
 
     args = parser.parse_args()
     if args.cmd == "web-terminal":

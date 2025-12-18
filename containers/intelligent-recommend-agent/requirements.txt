@@ -61,6 +61,7 @@ azure-storage-blob==12.27.1
     #   azure-ai-projects
     #   fnllm
     #   graphrag
+    #   intelligent-recommend-agent
 beartype==0.18.5
     # via graspologic
 blis==1.3.3
