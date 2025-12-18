@@ -15,10 +15,7 @@ app = typer.Typer(help="Azure Blob Storage CLI (upload / download)")
 
 
 def get_blob_service_client() -> BlobServiceClient:
-    if connection_string := os.getenv("AZURE_STORAGE_CONNECTION_STRING"):
-        return BlobServiceClient(account_url="stgcontainershared.blob.core.windows.net", credential=DefaultAzureCredential())
-    typer.echo("❌ AZURE_STORAGE_CONNECTION_STRING is not set", err=True)
-    raise typer.Exit(1)
+    return BlobServiceClient(account_url="stgcontainershared.blob.core.windows.net", credential=DefaultAzureCredential())
 
 
 def ensure_blob_container_client(client: BlobServiceClient, container_name: str):
