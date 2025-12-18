@@ -204,7 +204,7 @@
 
         if (data === "\r") { // Enter
           // 백엔드는 ws.receive_text()로 받는다고 가정 -> 문자열만 보냄
-          socket.send(inputBuffer);
+          socket.send(JSON.stringify({ type: "input", data: inputBuffer }));
           endInputLine();
           return;
         }

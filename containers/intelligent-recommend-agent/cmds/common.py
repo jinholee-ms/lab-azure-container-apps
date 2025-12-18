@@ -130,7 +130,7 @@ async def _control_agent_properties(input_cb: callable):
         cmd = await input_cb() if asyncio.iscoroutinefunction(input_cb) else input_cb()
         if not cmd.strip():
             continue
-        elif number.lower() == "q":
+        elif cmd.lower() == "q":
             continue
         elif cmd.lower() == "a":
             agent_class.profile.activated = True
@@ -146,7 +146,8 @@ async def _control_agent_properties(input_cb: callable):
                 if i != len(available_deployments) - 1:
                     prompt += ", "
 
-            deployment_number = Prompt.ask(prompt, choices=[str(i) for i in range(1, len(available_deployments) + 1)])
+            console.print(prompt)
+            deployment_number = await input_cb() if asyncio.iscoroutinefunction(input_cb) else input_cb()
             if deployment_number.strip():
                 deployment_name = available_deployments[int(deployment_number) - 1].strip()
                 agent_class.profile.deployment_name = deployment_name

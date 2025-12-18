@@ -18,7 +18,6 @@ app = FastAPI()
 
 
 @app.websocket("/ws")
-@app.websocket("/ws")
 async def ws_endpoint(ws: WebSocket):
     await ws.accept()
 
@@ -49,7 +48,6 @@ async def ws_endpoint(ws: WebSocket):
                     if cols > 0:
                         console.width = cols   # ✅ Rich 폭을 프론트 cols에 맞춤
                     continue
-
                 if msg.get("type") == "input":
                     await input_queue.put(msg.get("data", ""))
                     continue
@@ -69,8 +67,11 @@ async def ws_endpoint(ws: WebSocket):
         print("WebSocket disconnected")
     finally:
         sender_task.cancel()
+        receiver_task.cancel()
         with contextlib.suppress(asyncio.CancelledError):
             await sender_task
+        with contextlib.suppress(asyncio.CancelledError):
+            await receiver_task
 
 
 @app.get("/")
